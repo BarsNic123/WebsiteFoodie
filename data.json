@@ -1,0 +1,470 @@
+{
+  "categories": [
+    {
+      "id": 1,
+      "name": "Burger",
+      "icon": "🍔",
+      "filter": "fast-food"
+    },
+    {
+      "id": 2,
+      "name": "Pizza",
+      "icon": "🍕",
+      "filter": "fast-food"
+    },
+    {
+      "id": 3,
+      "name": "Chicken",
+      "icon": "🍗",
+      "filter": "fast-food"
+    },
+    {
+      "id": 4,
+      "name": "Asian",
+      "icon": "🍜",
+      "filter": "asian"
+    },
+    {
+      "id": 5,
+      "name": "Sushi",
+      "icon": "🍣",
+      "filter": "asian"
+    },
+    {
+      "id": 6,
+      "name": "Desserts",
+      "icon": "🍰",
+      "filter": "desserts"
+    },
+    {
+      "id": 7,
+      "name": "Coffee",
+      "icon": "☕",
+      "filter": "desserts"
+    },
+    {
+      "id": 8,
+      "name": "Healthy",
+      "icon": "🥗",
+      "filter": "healthy"
+    },
+    {
+      "id": 9,
+      "name": "Steak",
+      "icon": "🥩",
+      "filter": "fast-food"
+    },
+    {
+      "id": 10,
+      "name": "Pasta",
+      "icon": "🍝",
+      "filter": "fast-food"
+    },
+    {
+      "id": 11,
+      "name": "Breakfast",
+      "icon": "🍳",
+      "filter": "healthy"
+    },
+    {
+      "id": 12,
+      "name": "Milk Tea",
+      "icon": "🧋",
+      "filter": "desserts"
+    }
+  ],
+  "restaurants": [
+    {
+      "id": 1,
+      "name": "Burger Palace",
+      "image": "https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=600",
+      "rating": 4.8,
+      "deliveryTime": "20-30",
+      "deliveryFee": 49,
+      "cuisines": [
+        "Burgers",
+        "American",
+        "Fast Food"
+      ],
+      "tag": "Popular",
+      "tagStyle": "",
+      "category": "fast-food",
+      "open": true,
+      "menu": [
+        {
+          "id": 101,
+          "name": "Classic Cheeseburger",
+          "description": "Beef patty, cheese, lettuce, tomato",
+          "price": 189
+        },
+        {
+          "id": 102,
+          "name": "Double Bacon Burger",
+          "description": "Two patties, crispy bacon, extra cheese",
+          "price": 259
+        },
+        {
+          "id": 103,
+          "name": "Mushroom Swiss Burger",
+          "description": "Beef patty, sautéed mushrooms, swiss",
+          "price": 229
+        },
+        {
+          "id": 104,
+          "name": "Loaded Fries",
+          "description": "Fries with cheese sauce, bacon, sour cream",
+          "price": 149
+        },
+        {
+          "id": 105,
+          "name": "Onion Rings",
+          "description": "Crispy battered onion rings (8 pcs)",
+          "price": 99
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Tokyo Ramen House",
+      "image": "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=600",
+      "rating": 4.9,
+      "deliveryTime": "25-35",
+      "deliveryFee": 59,
+      "cuisines": [
+        "Japanese",
+        "Ramen",
+        "Asian"
+      ],
+      "tag": "Top Rated",
+      "tagStyle": "gold",
+      "category": "asian",
+      "open": true,
+      "menu": [
+        {
+          "id": 201,
+          "name": "Tonkotsu Ramen",
+          "description": "Rich pork bone broth, chashu, soft egg",
+          "price": 299
+        },
+        {
+          "id": 202,
+          "name": "Miso Ramen",
+          "description": "Savory miso broth, corn, butter",
+          "price": 279
+        },
+        {
+          "id": 203,
+          "name": "Spicy Tantanmen",
+          "description": "Spicy sesame broth, ground pork",
+          "price": 289
+        },
+        {
+          "id": 204,
+          "name": "Gyoza (6 pcs)",
+          "description": "Pan-fried pork dumplings",
+          "price": 149
+        },
+        {
+          "id": 205,
+          "name": "Karaage",
+          "description": "Japanese fried chicken",
+          "price": 179
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Green Bowl",
+      "image": "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600",
+      "rating": 4.7,
+      "deliveryTime": "15-25",
+      "deliveryFee": 39,
+      "cuisines": [
+        "Healthy",
+        "Salads",
+        "Bowls"
+      ],
+      "tag": "Healthy",
+      "tagStyle": "green",
+      "category": "healthy",
+      "open": true,
+      "menu": [
+        {
+          "id": 301,
+          "name": "Quinoa Power Bowl",
+          "description": "Quinoa, chickpeas, avocado, roasted veggies",
+          "price": 249
+        },
+        {
+          "id": 302,
+          "name": "Grilled Chicken Salad",
+          "description": "Mixed greens, grilled chicken, vinaigrette",
+          "price": 229
+        },
+        {
+          "id": 303,
+          "name": "Poke Bowl",
+          "description": "Fresh salmon, rice, edamame, seaweed",
+          "price": 299
+        },
+        {
+          "id": 304,
+          "name": "Smoothie Bowl",
+          "description": "Acai, banana, granola, fresh fruits",
+          "price": 199
+        },
+        {
+          "id": 305,
+          "name": "Detox Green Juice",
+          "description": "Kale, cucumber, apple, ginger",
+          "price": 129
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Pizza Planet",
+      "image": "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600",
+      "rating": 4.6,
+      "deliveryTime": "30-40",
+      "deliveryFee": 0,
+      "cuisines": [
+        "Pizza",
+        "Italian",
+        "Pasta"
+      ],
+      "tag": "Free Delivery",
+      "tagStyle": "blue",
+      "category": "fast-food",
+      "open": true,
+      "menu": [
+        {
+          "id": 401,
+          "name": "Margherita Pizza",
+          "description": "Classic tomato, mozzarella, fresh basil",
+          "price": 349
+        },
+        {
+          "id": 402,
+          "name": "Pepperoni Supreme",
+          "description": "Loaded pepperoni, extra cheese",
+          "price": 399
+        },
+        {
+          "id": 403,
+          "name": "Four Cheese",
+          "description": "Mozzarella, parmesan, gorgonzola, ricotta",
+          "price": 429
+        },
+        {
+          "id": 404,
+          "name": "Garlic Bread",
+          "description": "Toasted with garlic butter",
+          "price": 99
+        },
+        {
+          "id": 405,
+          "name": "Pasta Carbonara",
+          "description": "Creamy pasta, bacon, parmesan",
+          "price": 279
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Sweet Treats Bakery",
+      "image": "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?w=600",
+      "rating": 4.9,
+      "deliveryTime": "20-30",
+      "deliveryFee": 39,
+      "cuisines": [
+        "Desserts",
+        "Cakes",
+        "Pastries"
+      ],
+      "tag": "New",
+      "tagStyle": "",
+      "category": "desserts",
+      "open": true,
+      "menu": [
+        {
+          "id": 501,
+          "name": "Chocolate Lava Cake",
+          "description": "Warm cake with molten chocolate center",
+          "price": 189
+        },
+        {
+          "id": 502,
+          "name": "New York Cheesecake",
+          "description": "Classic creamy cheesecake slice",
+          "price": 169
+        },
+        {
+          "id": 503,
+          "name": "Tiramisu",
+          "description": "Italian coffee-flavored layered dessert",
+          "price": 199
+        },
+        {
+          "id": 504,
+          "name": "Macarons (6 pcs)",
+          "description": "Assorted French macarons",
+          "price": 249
+        },
+        {
+          "id": 505,
+          "name": "Butter Croissant",
+          "description": "Buttery, flaky baked pastry",
+          "price": 89
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "name": "Golden Dragon",
+      "image": "https://images.unsplash.com/photo-1525755662778-989d0524087e?w=600",
+      "rating": 4.5,
+      "deliveryTime": "25-35",
+      "deliveryFee": 49,
+      "cuisines": [
+        "Chinese",
+        "Dimsum",
+        "Asian"
+      ],
+      "tag": "Popular",
+      "tagStyle": "",
+      "category": "asian",
+      "open": true,
+      "menu": [
+        {
+          "id": 601,
+          "name": "Sweet & Sour Pork",
+          "description": "Crispy pork in tangy pineapple sauce",
+          "price": 249
+        },
+        {
+          "id": 602,
+          "name": "Kung Pao Chicken",
+          "description": "Spicy stir-fried chicken with peanuts",
+          "price": 229
+        },
+        {
+          "id": 603,
+          "name": "Siomai (10 pcs)",
+          "description": "Steamed pork dumplings",
+          "price": 149
+        },
+        {
+          "id": 604,
+          "name": "Hakaw (8 pcs)",
+          "description": "Steamed shrimp dumplings",
+          "price": 189
+        },
+        {
+          "id": 605,
+          "name": "Yang Chow Fried Rice",
+          "description": "Classic Chinese fried rice",
+          "price": 169
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "name": "Brew & Bean Coffee",
+      "image": "https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=600",
+      "rating": 4.6,
+      "deliveryTime": "15-25",
+      "deliveryFee": 39,
+      "cuisines": [
+        "Coffee",
+        "Milk Tea",
+        "Pastries"
+      ],
+      "tag": "Popular",
+      "tagStyle": "",
+      "category": "desserts",
+      "open": true,
+      "menu": [
+        {
+          "id": 701,
+          "name": "Classic Americano",
+          "description": "Double shot espresso with hot water",
+          "price": 99
+        },
+        {
+          "id": 702,
+          "name": "Caramel Macchiato",
+          "description": "Espresso, steamed milk, caramel drizzle",
+          "price": 149
+        },
+        {
+          "id": 703,
+          "name": "Brown Sugar Milk Tea",
+          "description": "Freshly brewed milk tea, brown sugar pearls",
+          "price": 129
+        },
+        {
+          "id": 704,
+          "name": "Taro Milk Tea",
+          "description": "Creamy taro milk tea with pearls",
+          "price": 139
+        },
+        {
+          "id": 705,
+          "name": "Blueberry Muffin",
+          "description": "Freshly baked blueberry muffin",
+          "price": 89
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "name": "Sunrise Breakfast Co.",
+      "image": "https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=600",
+      "rating": 4.7,
+      "deliveryTime": "20-30",
+      "deliveryFee": 49,
+      "cuisines": [
+        "Breakfast",
+        "Brunch",
+        "Healthy"
+      ],
+      "tag": "New",
+      "tagStyle": "green",
+      "category": "healthy",
+      "open": false,
+      "menu": [
+        {
+          "id": 801,
+          "name": "Big Breakfast Plate",
+          "description": "Eggs, bacon, toast, mushrooms, sausage",
+          "price": 249
+        },
+        {
+          "id": 802,
+          "name": "Avocado Toast",
+          "description": "Sourdough, smashed avocado, poached egg",
+          "price": 199
+        },
+        {
+          "id": 803,
+          "name": "Pancake Stack",
+          "description": "Fluffy pancakes with maple syrup and butter",
+          "price": 179
+        },
+        {
+          "id": 804,
+          "name": "Granola Bowl",
+          "description": "Greek yogurt, granola, honey, mixed berries",
+          "price": 159
+        },
+        {
+          "id": 805,
+          "name": "Fresh Orange Juice",
+          "description": "Cold-pressed, 100% fresh oranges",
+          "price": 99
+        }
+      ]
+    }
+  ]
+}

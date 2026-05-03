@@ -1,0 +1,33 @@
+-- Run in phpMyAdmin or: mysql -u root < sql/schema.sql
+CREATE DATABASE IF NOT EXISTS foodieph CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE foodieph;
+
+CREATE TABLE IF NOT EXISTS categories (
+  id INT UNSIGNED NOT NULL PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  icon VARCHAR(32) NOT NULL,
+  filter_key VARCHAR(50) NOT NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS restaurants (
+  id INT UNSIGNED NOT NULL PRIMARY KEY,
+  name VARCHAR(200) NOT NULL,
+  image VARCHAR(600) NOT NULL,
+  rating DECIMAL(2,1) NOT NULL,
+  delivery_time VARCHAR(20) NOT NULL,
+  delivery_fee INT NOT NULL,
+  cuisines_json JSON NOT NULL,
+  tag VARCHAR(100) NOT NULL,
+  tag_style VARCHAR(20) NOT NULL DEFAULT '',
+  category VARCHAR(50) NOT NULL,
+  is_open TINYINT(1) NOT NULL DEFAULT 1
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS menu_items (
+  id INT UNSIGNED NOT NULL PRIMARY KEY,
+  restaurant_id INT UNSIGNED NOT NULL,
+  name VARCHAR(200) NOT NULL,
+  description VARCHAR(600) NOT NULL,
+  price INT NOT NULL,
+  CONSTRAINT fk_menu_restaurant FOREIGN KEY (restaurant_id) REFERENCES restaurants (id) ON DELETE CASCADE
+) ENGINE=InnoDB;

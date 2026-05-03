@@ -1,0 +1,15 @@
+.DS_Store
+Thumbs.db
+
+# Local config (contains credentials)
+config.php
+
+# Logs / temp
+*.log
+
+# Dependencies / builds (if you add them later)
+node_modules/
+vendor/
+
+# Editor / OS
+.vscode/

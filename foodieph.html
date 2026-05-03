@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Foodie.PH — Fast. Fresh. Delivered.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fraunces:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="foodieph.css">
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  📞 Globe: <strong>09177135477</strong> &nbsp;|&nbsp; Fast. Fresh. Nationwide Delivery &nbsp;|&nbsp;
+  <a href="#">New to Foodie.PH? Create an account →</a>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a href="#" class="logo">Foodie<span>.PH</span></a>
+    <div class="nav-links">
+      <a href="#">Home</a>
+      <a href="#">Metro Manila</a>
+      <a href="#">Cebu</a>
+      <a href="#">Guidelines</a>
+      <a href="#">News</a>
+      <a href="#">Contact</a>
+    </div>
+    <div class="nav-actions">
+      <button class="btn-ghost" onclick="openModal('login')"><i class="fa fa-user" style="margin-right:6px;font-size:12px"></i>Login</button>
+      <button class="btn-primary">Create Account</button>
+      <button class="cart-btn" onclick="openCart()">
+        <i class="fas fa-shopping-bag"></i>
+        Cart
+        <span class="cart-badge" id="cart-count">0</span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-content">
+    <div class="hero-eyebrow">🚀 Now nationwide</div>
+    <h1>Fast. Fresh.<br><em>Delivered.</em></h1>
+    <p>Order from the best restaurants. We deliver to your door.</p>
+    <div class="hero-search">
+      <i class="fas fa-map-marker-alt"></i>
+      <input type="text" placeholder="Enter your address or building name…" id="address-input">
+      <button class="hero-search-btn" onclick="handleSearch()">Find Me Food!</button>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat"><strong>200+</strong><span>Restaurants</span></div>
+      <div class="hero-stat"><strong>60–90</strong><span>Min Delivery</span></div>
+      <div class="hero-stat"><strong>24/7</strong><span>Ordering</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ZONE SELECTOR -->
+<div class="zones-banner">
+  <span class="zones-label"><i class="fas fa-location-dot" style="margin-right:5px"></i>Select Delivery Zone:</span>
+  <div class="zone-pill active" data-zone="metro-manila"><i class="fas fa-city"></i> Metro Manila</div>
+  <div class="zone-pill" data-zone="cebu"><i class="fas fa-umbrella-beach"></i> Cebu</div>
+  <div class="zone-pill" data-zone="nationwide"><i class="fas fa-truck"></i> Nationwide (Home Delivery)</div>
+</div>
+
+<!-- PROMOS -->
+<div class="container section" style="padding-bottom:0">
+  <div class="promo-grid">
+    <div class="promo-card">
+      <img src="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=800&q=60" alt="promo">
+      <div class="promo-card-overlay">
+        <h3>Free Delivery</h3>
+        <p>On orders above ₱500 this weekend</p>
+        <span class="promo-cta">Order Now →</span>
+      </div>
+    </div>
+    <div class="promo-card">
+      <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&q=60" alt="promo">
+      <div class="promo-card-overlay dark">
+        <h3>New Arrivals</h3>
+        <p>Discover recently added restaurants</p>
+        <span class="promo-cta" style="color:#c94a00">Explore →</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CATEGORIES -->
+<div class="container section">
+  <div class="section-header">
+    <h2>Browse by <em>Category</em></h2>
+  </div>
+  <div class="categories-row" id="categories-row"></div>
+</div>
+
+<!-- RESTAURANTS -->
+<div class="container section" style="padding-top:0">
+  <div class="section-header">
+    <h2>Available <em>Restaurants</em></h2>
+    <a href="#" class="view-all">View all</a>
+  </div>
+  <div class="filter-tabs" id="filter-tabs">
+    <button class="filter-tab active" data-filter="all">All</button>
+    <button class="filter-tab" data-filter="fast-food">Fast Food</button>
+    <button class="filter-tab" data-filter="asian">Asian</button>
+    <button class="filter-tab" data-filter="healthy">Healthy</button>
+    <button class="filter-tab" data-filter="desserts">Desserts & Coffee</button>
+  </div>
+  <div id="restaurants-grid"></div>
+</div>
+
+<!-- HOW IT WORKS -->
+<div class="how-it-works">
+  <div class="container section">
+    <div class="section-header"><h2>How It <em>Works</em></h2></div>
+    <div class="steps-grid">
+      <div class="step">
+        <div class="step-icon">📍</div>
+        <span class="step-num">Step 1</span>
+        <h3>Enter Address</h3>
+        <p>Type your office or home address to see restaurants near you.</p>
+      </div>
+      <div class="step">
+        <div class="step-icon">🍽️</div>
+        <span class="step-num">Step 2</span>
+        <h3>Choose Restaurant</h3>
+        <p>Browse menus and pick your favorites from our partner restaurants.</p>
+      </div>
+      <div class="step">
+        <div class="step-icon">🛒</div>
+        <span class="step-num">Step 3</span>
+        <h3>Add to Cart</h3>
+        <p>Select your items, review your order, and proceed to checkout.</p>
+      </div>
+      <div class="step">
+        <div class="step-icon">🏍️</div>
+        <span class="step-num">Step 4</span>
+        <h3>Fast Delivery</h3>
+        <p>Sit back! Your food arrives fresh within 60–90 minutes.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- POPULAR SEARCHES -->
+<div class="container section">
+  <div class="section-header"><h2>Popular <em>Searches</em></h2></div>
+  <div class="popular-tags">
+    <div class="pop-tag">Krispy Kreme</div>
+    <div class="pop-tag">Yellow Cab Pizza</div>
+    <div class="pop-tag">Pancake House</div>
+    <div class="pop-tag">Max's Restaurant</div>
+    <div class="pop-tag">Uncle Moe's</div>
+    <div class="pop-tag">Cebreros Catering</div>
+    <div class="pop-tag">Custaroonery</div>
+    <div class="pop-tag">Jollibee</div>
+    <div class="pop-tag">Burger King</div>
+    <div class="pop-tag">Mang Inasal</div>
+    <div class="pop-tag">Chowking</div>
+    <div class="pop-tag">Greenwich Pizza</div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a href="#" class="logo">Foodie<span style="color:rgba(255,255,255,0.5)">.PH</span></a>
+        <p>Foodie.PH helps you find and order food from wherever you are! Satisfy your cravings with a huge selection of restaurants nationwide.</p>
+      </div>
+      <div>
+        <h4>Delivery Zones</h4>
+        <ul>
+          <li><a href="#">Metro Manila</a></li>
+          <li><a href="#">Cebu</a></li>
+          <li><a href="#">Nationwide</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Foodie.PH</h4>
+        <ul>
+          <li><a href="#">About Us</a></li>
+          <li><a href="#">Restaurants</a></li>
+          <li><a href="#">News</a></li>
+          <li><a href="#">Contact</a></li>
+          <li><a href="#">Privacy Policy</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>For Vendors</h4>
+        <ul>
+          <li><a href="#">List Your Restaurant</a></li>
+          <li><a href="#">Partner Guidelines</a></li>
+          <li><a href="#">Inquiry / New Client</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2025 Foodie.PH &nbsp;·&nbsp; <a href="#">Privacy Policy</a> &nbsp;·&nbsp; <a href="#">Legals</a></span>
+      <span>Powered by DeliverLogic</span>
+    </div>
+  </div>
+</footer>
+
+<!-- MODAL -->
+<div id="modal-overlay">
+  <div class="modal-box">
+    <button id="modal-close" onclick="closeModal()"><i class="fas fa-xmark"></i></button>
+    <div id="modal-hero-img" class="modal-hero-img"></div>
+    <div id="modal-info" class="modal-info"></div>
+    <div id="menu-section-title" class="modal-section-title">Menu</div>
+    <div id="menu-items"></div>
+  </div>
+</div>
+
+<!-- CART OVERLAY -->
+<div id="cart-overlay" onclick="closeCart()"></div>
+
+<!-- CART SIDEBAR -->
+<div id="cart-sidebar">
+  <div class="cart-head">
+    <h2>🛒 Your Order</h2>
+    <button class="cart-head-close" onclick="closeCart()"><i class="fas fa-xmark"></i></button>
+  </div>
+  <div id="cart-items-list"></div>
+  <div class="cart-foot">
+    <div class="cart-summary">
+      <div class="cart-sum-row"><span>Subtotal</span><span id="cart-subtotal">₱0.00</span></div>
+      <div class="cart-sum-row"><span>Delivery Fee (10%)</span><span id="cart-delivery">₱0.00</span></div>
+      <div class="cart-sum-row total"><span>Total</span><span id="cart-total">₱0.00</span></div>
+    </div>
+    <button class="checkout-cta" id="checkout-btn">Proceed to Checkout →</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"><i class="fas fa-check-circle"></i><span id="toast-msg"></span></div>
+
+<script src="foodieph.js"></script>
+</body>
+</html>
