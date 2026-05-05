@@ -78,6 +78,23 @@ try {
         }
     }
 
+    $usersTable = $pdo->query("SHOW TABLES LIKE 'users'")->fetch();
+    if ($usersTable) {
+        $defaultAdminEmail = 'admin@foodie.local';
+        $checkAdmin = $pdo->prepare('SELECT id FROM users WHERE email = ? LIMIT 1');
+        $checkAdmin->execute([$defaultAdminEmail]);
+        if (!$checkAdmin->fetch()) {
+            $addAdmin = $pdo->prepare('INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)');
+            $addAdmin->execute([
+                'Foodie Admin',
+                $defaultAdminEmail,
+                password_hash('admin123', PASSWORD_DEFAULT),
+                'admin',
+            ]);
+            echo "Default admin created: admin@foodie.local / admin123\n";
+        }
+    }
+
     $pdo->commit();
     echo "Seed completed.\n";
 } catch (Throwable $e) {
