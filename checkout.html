@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Checkout - Foodie.PH</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fraunces:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="foodieph.css">
+<style>
+.checkout-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: 40px;
+  min-height: calc(100vh - 200px);
+}
+.checkout-form {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+}
+.checkout-summary {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+  height: fit-content;
+  position: sticky;
+  top: 20px;
+}
+.form-section {
+  margin-bottom: 30px;
+}
+.form-section h3 {
+  margin-bottom: 20px;
+  color: var(--dark);
+  font-size: 18px;
+  font-weight: 600;
+}
+.form-group {
+  margin-bottom: 20px;
+}
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: var(--dark);
+}
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: border-color 0.3s;
+}
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+.order-item {
+  padding: 15px 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+.order-item:last-child {
+  border-bottom: none;
+}
+.order-item-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  margin-bottom: 8px;
+}
+.order-item-name {
+  font-weight: 500;
+  color: var(--dark);
+}
+.order-item-price {
+  color: var(--primary);
+  font-weight: 600;
+}
+.order-item-quantity {
+  font-size: 14px;
+  color: var(--muted);
+}
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+.summary-row.total {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--dark);
+  padding-top: 12px;
+  border-top: 2px solid #e5e7eb;
+}
+.place-order-btn {
+  width: 100%;
+  padding: 16px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s;
+  margin-top: 20px;
+}
+.place-order-btn:hover {
+  background: var(--primary-dark);
+}
+.place-order-btn:disabled {
+  background: var(--muted);
+  cursor: not-allowed;
+}
+@media (max-width: 968px) {
+  .checkout-container {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+  .checkout-summary {
+    position: static;
+  }
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+</head>
+<body>
+<!-- TOP BAR -->
+<div class="topbar">
+  📞 Globe: <strong>09177135477</strong> &nbsp;|&nbsp; Fast. Fresh. Nationwide Delivery &nbsp;|&nbsp;
+  <a href="#">New to Foodie.PH? Create an account →</a>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a href="foodieph.html" class="logo">Foodie<span>.PH</span></a>
+    <div class="nav-links">
+      <a href="foodieph.html">Home</a>
+      <a href="#">Metro Manila</a>
+      <a href="#">Cebu</a>
+      <a href="#">Guidelines</a>
+      <a href="#">News</a>
+      <a href="#">Contact</a>
+    </div>
+    <div class="nav-actions">
+      <a href="admin.php" class="btn-ghost" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center;">Admin</a>
+      <a href="login.php" class="btn-ghost" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center;"><i class="fa fa-user" style="margin-right:6px;font-size:12px"></i>Login</a>
+      <a href="register.php" class="btn-primary" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center;">Create Account</a>
+    </div>
+  </div>
+</nav>
+
+<!-- CHECKOUT CONTAINER -->
+<div class="checkout-container">
+  <!-- Checkout Form -->
+  <div class="checkout-form">
+    <h2 style="margin-bottom: 30px; color: var(--dark);">Checkout</h2>
+    
+    <form id="checkout-form">
+      <!-- Delivery Information -->
+      <div class="form-section">
+        <h3><i class="fas fa-location-dot" style="margin-right: 8px;"></i>Delivery Information</h3>
+        <div class="form-group">
+          <label for="full-name">Full Name *</label>
+          <input type="text" id="full-name" name="full_name" required>
+        </div>
+        <div class="form-group">
+          <label for="contact-number">Contact Number *</label>
+          <input type="tel" id="contact-number" name="contact_number" placeholder="09XX XXX XXXX" required>
+        </div>
+        <div class="form-group">
+          <label for="delivery-address">Delivery Address *</label>
+          <textarea id="delivery-address" name="delivery_address" rows="3" placeholder="Enter your complete delivery address" required></textarea>
+        </div>
+        <div class="form-group">
+          <label for="delivery-notes">Delivery Notes (Optional)</label>
+          <textarea id="delivery-notes" name="delivery_notes" rows="2" placeholder="Landmarks, special instructions, etc."></textarea>
+        </div>
+      </div>
+
+      <!-- Payment Information -->
+      <div class="form-section">
+        <h3><i class="fas fa-credit-card" style="margin-right: 8px;"></i>Payment Method</h3>
+        <div class="form-group">
+          <label for="payment-method">Payment Method *</label>
+          <select id="payment-method" name="payment_method" required>
+            <option value="">Select payment method</option>
+            <option value="cash">Cash on Delivery</option>
+            <option value="gcash">GCash</option>
+            <option value="maya">Maya</option>
+            <option value="card">Credit/Debit Card</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Order Notes -->
+      <div class="form-section">
+        <h3><i class="fas fa-comment" style="margin-right: 8px;"></i>Order Notes (Optional)</h3>
+        <div class="form-group">
+          <textarea id="order-notes" name="order_notes" rows="3" placeholder="Special requests, allergies, etc."></textarea>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Order Summary -->
+  <div class="checkout-summary">
+    <h3 style="margin-bottom: 20px; color: var(--dark);">Order Summary</h3>
+    <div id="order-items"></div>
+    <div style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #e5e7eb;">
+      <div class="summary-row">
+        <span>Subtotal</span>
+        <span id="summary-subtotal">₱0.00</span>
+      </div>
+      <div class="summary-row">
+        <span>Delivery Fee</span>
+        <span id="summary-delivery">₱0.00</span>
+      </div>
+      <div class="summary-row total">
+        <span>Total</span>
+        <span id="summary-total">₱0.00</span>
+      </div>
+    </div>
+    <button type="submit" form="checkout-form" class="place-order-btn" id="place-order-btn">
+      Place Order
+    </button>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a href="foodieph.html" class="logo">Foodie<span style="color:rgba(255,255,255,0.5)">.PH</span></a>
+        <p>Foodie.PH helps you find and order food from wherever you are! Satisfy your cravings with a huge selection of restaurants nationwide.</p>
+      </div>
+      <div>
+        <h4>Delivery Zones</h4>
+        <ul>
+          <li><a href="#">Metro Manila</a></li>
+          <li><a href="#">Cebu</a></li>
+          <li><a href="#">Nationwide</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Foodie.PH</h4>
+        <ul>
+          <li><a href="#">About Us</a></li>
+          <li><a href="#">Restaurants</a></li>
+          <li><a href="#">News</a></li>
+          <li><a href="#">Contact</a></li>
+          <li><a href="#">Privacy Policy</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>For Vendors</h4>
+        <ul>
+          <li><a href="#">List Your Restaurant</a></li>
+          <li><a href="#">Partner Guidelines</a></li>
+          <li><a href="#">Inquiry / New Client</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2025 Foodie.PH &nbsp;·&nbsp; <a href="#">Privacy Policy</a> &nbsp;·&nbsp; <a href="#">Legals</a></span>
+      <span>Powered by DeliverLogic</span>
+    </div>
+  </div>
+</footer>
+
+<!-- TOAST -->
+<div id="toast"><i class="fas fa-check-circle"></i><span id="toast-msg"></span></div>
+
+<script>
+// Load cart data from localStorage or from URL parameters
+let cart = [];
+let currentRestaurant = null;
+
+// Parse URL parameters to get cart data
+function getCartFromURL() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const cartData = urlParams.get('cart');
+  if (cartData) {
+    try {
+      return JSON.parse(decodeURIComponent(cartData));
+    } catch (e) {
+      console.error('Invalid cart data');
+      return [];
+    }
+  }
+  return [];
+}
+
+// Initialize checkout page
+function initCheckout() {
+  cart = getCartFromURL();
+  if (!cart || cart.length === 0) {
+    showToast('Your cart is empty. Redirecting to homepage...');
+    setTimeout(() => {
+      window.location.href = 'foodieph.html';
+    }, 2000);
+    return;
+  }
+  
+  currentRestaurant = cart[0];
+  renderOrderSummary();
+}
+
+// Render order summary
+function renderOrderSummary() {
+  const itemsContainer = document.getElementById('order-items');
+  if (!cart.length) {
+    itemsContainer.innerHTML = '<p style="color: var(--muted); text-align: center;">No items in cart</p>';
+    return;
+  }
+
+  itemsContainer.innerHTML = cart.map(item => `
+    <div class="order-item">
+      <div class="order-item-info">
+        <div>
+          <div class="order-item-name">${item.name}</div>
+          <div class="order-item-quantity">₱${item.price} × ${item.quantity}</div>
+        </div>
+        <div class="order-item-price">₱${(item.price * item.quantity).toFixed(2)}</div>
+      </div>
+    </div>
+  `).join('');
+
+  const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const deliveryFee = currentRestaurant.deliveryFee || 0;
+  const total = subtotal + deliveryFee;
+
+  document.getElementById('summary-subtotal').textContent = `₱${subtotal.toFixed(2)}`;
+  document.getElementById('summary-delivery').textContent = `₱${deliveryFee.toFixed(2)}`;
+  document.getElementById('summary-total').textContent = `₱${total.toFixed(2)}`;
+}
+
+// Handle form submission
+document.getElementById('checkout-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const formData = new FormData(e.target);
+  const orderData = {
+    full_name: formData.get('full_name'),
+    contact_number: formData.get('contact_number'),
+    delivery_address: formData.get('delivery_address'),
+    delivery_notes: formData.get('delivery_notes'),
+    payment_method: formData.get('payment_method'),
+    order_notes: formData.get('order_notes'),
+    cart: cart,
+    restaurant_id: currentRestaurant.restaurantId
+  };
+
+  // Validate form
+  if (!orderData.full_name || !orderData.contact_number || !orderData.delivery_address || !orderData.payment_method) {
+    showToast('Please fill in all required fields');
+    return;
+  }
+
+  // Submit order
+  try {
+    const response = await fetch('checkout.php', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(orderData)
+    });
+
+    const result = await response.json();
+    
+    if (result.success) {
+      showToast('Order placed successfully! 🎉');
+      // Clear cart
+      localStorage.removeItem('cart');
+      // Redirect to order confirmation or home
+      setTimeout(() => {
+        window.location.href = 'foodieph.html';
+      }, 2000);
+    } else {
+      showToast(result.error || 'Failed to place order');
+    }
+  } catch (error) {
+    console.error('Error placing order:', error);
+    showToast('Error placing order. Please try again.');
+  }
+});
+
+// Toast notification
+function showToast(message) {
+  const toast = document.getElementById('toast');
+  const toastMsg = document.getElementById('toast-msg');
+  toastMsg.textContent = message;
+  toast.classList.add('active');
+  setTimeout(() => {
+    toast.classList.remove('active');
+  }, 3000);
+}
+
+// Initialize page
+document.addEventListener('DOMContentLoaded', initCheckout);
+</script>
+</body>
+</html>

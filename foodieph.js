@@ -189,8 +189,9 @@ function handleSearch() {
 document.getElementById('modal-overlay').addEventListener('click', e => { if (e.target === document.getElementById('modal-overlay')) closeModal(); });
 document.getElementById('checkout-btn').addEventListener('click', () => {
   if (!cart.length) { toast('Your cart is empty!'); return; }
-  toast('Order placed! Thank you 🎉');
-  cart = []; updateCart(); closeCart();
+  // Redirect to checkout page with cart data
+  const cartData = encodeURIComponent(JSON.stringify(cart));
+  window.location.href = `checkout.html?cart=${cartData}`;
 });
 document.querySelectorAll('.filter-tab').forEach(btn => {
   btn.addEventListener('click', () => setFilter(btn.dataset.filter));

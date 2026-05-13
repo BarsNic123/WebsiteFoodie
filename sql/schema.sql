@@ -40,3 +40,19 @@ CREATE TABLE IF NOT EXISTS users (
   role ENUM('admin','user') NOT NULL DEFAULT 'user',
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS orders (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  user_id INT UNSIGNED NOT NULL,
+  restaurant_id INT UNSIGNED NOT NULL,
+  items_json JSON NOT NULL,
+  subtotal INT NOT NULL,
+  delivery_fee INT NOT NULL,
+  total_amount INT NOT NULL,
+  delivery_address TEXT NOT NULL,
+  contact_number VARCHAR(20) NOT NULL,
+  status ENUM('pending','preparing','delivering','completed','cancelled') NOT NULL DEFAULT 'pending',
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_order_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+  CONSTRAINT fk_order_restaurant FOREIGN KEY (restaurant_id) REFERENCES restaurants (id) ON DELETE CASCADE
+) ENGINE=InnoDB;
