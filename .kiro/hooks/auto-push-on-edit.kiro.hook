@@ -1,0 +1,14 @@
+{
+  "enabled": true,
+  "name": "Auto Push to GitHub",
+  "description": "After any file is edited in the workspace, automatically stages all changes, commits with a timestamp message, and pushes to origin main.",
+  "version": "1",
+  "when": {
+    "type": "agentStop"
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "cd \"c:\\Users\\Bogzz80622\\OneDrive\\Desktop\\WebsiteFoodie\" && git add -A && git diff --cached --quiet || git commit -m \"Auto-save: %date% %time%\" && git push origin main",
+    "timeout": 30
+  }
+}
