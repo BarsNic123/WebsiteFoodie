@@ -63,10 +63,12 @@ try {
     }
 
     $im = $pdo->prepare(
-        'INSERT INTO menu_items (id, restaurant_id, name, description, price) VALUES (?, ?, ?, ?, ?)'
+        'INSERT INTO menu_items (id, restaurant_id, name, description, price, is_available, sort_order)
+         VALUES (?, ?, ?, ?, ?, 1, ?)'
     );
     foreach ($data['restaurants'] as $r) {
-        $rid = (int) $r['id'];
+        $rid   = (int) $r['id'];
+        $order = 0;
         foreach ($r['menu'] as $item) {
             $im->execute([
                 (int) $item['id'],
@@ -74,25 +76,33 @@ try {
                 $item['name'],
                 $item['description'],
                 (int) $item['price'],
+                ++$order,
             ]);
         }
     }
 
-    $usersTable = $pdo->query("SHOW TABLES LIKE 'users'")->fetch();
-    if ($usersTable) {
-        $defaultAdminEmail = 'admin@foodie.local';
-        $checkAdmin = $pdo->prepare('SELECT id FROM users WHERE email = ? LIMIT 1');
-        $checkAdmin->execute([$defaultAdminEmail]);
-        if (!$checkAdmin->fetch()) {
-            $addAdmin = $pdo->prepare('INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)');
-            $addAdmin->execute([
-                'Foodie Admin',
-                $defaultAdminEmail,
-                password_hash('admin123', PASSWORD_DEFAULT),
-                'admin',
-            ]);
-            echo "Default admin created: admin@foodie.local / admin123\n";
-        }
+    // Seed delivery zones
+    $pdo->exec("INSERT IGNORE INTO delivery_zones (name, slug, icon, is_active, sort_order) VALUES
+        ('Metro Manila',        'metro-manila', '🏙️', 1, 1),
+        ('Cebu',                'cebu',         '🏖️', 1, 2),
+        ('Nationwide Delivery', 'nationwide',   '🚚', 1, 3)");
+
+    // Seed default admin
+    $defaultAdminEmail = 'admin@foodieph.com';
+    $checkAdmin = $pdo->prepare('SELECT id FROM users WHERE email = ? LIMIT 1');
+    $checkAdmin->execute([$defaultAdminEmail]);
+    if (!$checkAdmin->fetch()) {
+        $addAdmin = $pdo->prepare(
+            'INSERT INTO users (first_name, last_name, name, email, phone, password_hash, role)
+             VALUES (?, ?, ?, ?, ?, ?, ?)'
+        );
+        $addAdmin->execute([
+            'Foodie', 'Admin', 'Foodie Admin',
+            $defaultAdminEmail, '',
+            password_hash('admin123', PASSWORD_DEFAULT),
+            'admin',
+        ]);
+        echo "Default admin created: {$defaultAdminEmail} / admin123\n";
     }
 
     $pdo->commit();
