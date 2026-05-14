@@ -41,6 +41,30 @@ CREATE TABLE IF NOT EXISTS users (
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS restaurant_applications (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  restaurant_name VARCHAR(200) NOT NULL,
+  cuisine_type VARCHAR(100) NOT NULL,
+  description TEXT NOT NULL DEFAULT '',
+  owner_name VARCHAR(200) NOT NULL,
+  owner_email VARCHAR(190) NOT NULL,
+  owner_phone VARCHAR(30) NOT NULL,
+  business_address TEXT NOT NULL,
+  city VARCHAR(100) NOT NULL,
+  delivery_zones VARCHAR(200) NOT NULL DEFAULT '',
+  operating_hours VARCHAR(200) NOT NULL DEFAULT '',
+  avg_delivery_time VARCHAR(50) NOT NULL DEFAULT '',
+  delivery_fee INT NOT NULL DEFAULT 0,
+  min_order INT NOT NULL DEFAULT 0,
+  payment_methods VARCHAR(200) NOT NULL DEFAULT '',
+  bir_tin VARCHAR(50) NOT NULL DEFAULT '',
+  business_permit VARCHAR(100) NOT NULL DEFAULT '',
+  social_media VARCHAR(300) NOT NULL DEFAULT '',
+  how_heard VARCHAR(200) NOT NULL DEFAULT '',
+  status ENUM('pending','approved','rejected') NOT NULL DEFAULT 'pending',
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
 CREATE TABLE IF NOT EXISTS orders (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   user_id INT UNSIGNED NOT NULL,

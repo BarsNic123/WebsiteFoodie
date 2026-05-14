@@ -433,3 +433,50 @@ footer ul li a:hover { color: #fff; }
 }
 .step h3 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
 .step p { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+/* ── PARTNER WITH US CTA ── */
+.partner-cta-section {
+  background: linear-gradient(135deg, #1a0505 0%, #3d0c0c 50%, #6b1a1a 100%);
+  padding: 64px 24px;
+  position: relative;
+  overflow: hidden;
+}
+.partner-cta-section::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: url('https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1400&q=50') center/cover;
+  opacity: 0.12;
+}
+.partner-cta-inner {
+  position: relative; z-index: 1;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 40px; flex-wrap: wrap;
+}
+.partner-cta-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(255,255,255,0.12); color: #fff;
+  font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+  padding: 5px 14px; border-radius: 100px; border: 1px solid rgba(255,255,255,0.2);
+  margin-bottom: 14px;
+}
+.partner-cta-text h2 {
+  font-family: var(--font-display); font-size: clamp(24px, 3vw, 36px);
+  color: #fff; font-style: italic; line-height: 1.2; margin-bottom: 10px;
+}
+.partner-cta-text h2 em { font-style: normal; color: var(--gold); }
+.partner-cta-text p { color: rgba(255,255,255,0.75); font-size: 15px; max-width: 480px; line-height: 1.6; margin-bottom: 18px; }
+.partner-cta-perks { display: flex; gap: 20px; flex-wrap: wrap; }
+.partner-cta-perks span { color: rgba(255,255,255,0.9); font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+.partner-cta-perks i { color: #4cde80; }
+.partner-cta-action { display: flex; flex-direction: column; align-items: center; gap: 10px; flex-shrink: 0; }
+.partner-cta-btn {
+  display: inline-flex; align-items: center;
+  background: var(--brand); color: #fff;
+  font-family: var(--font); font-size: 16px; font-weight: 800;
+  padding: 16px 36px; border-radius: 100px;
+  text-decoration: none; transition: all 0.2s;
+  box-shadow: 0 4px 20px rgba(232,40,43,0.4);
+  white-space: nowrap;
+}
+.partner-cta-btn:hover { background: var(--brand-dark); transform: translateY(-2px); box-shadow: 0 6px 28px rgba(232,40,43,0.5); }
+.partner-cta-note { color: rgba(255,255,255,0.55); font-size: 12px; }
