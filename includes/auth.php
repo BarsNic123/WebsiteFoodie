@@ -33,12 +33,53 @@ function currentUser(): ?array
     if (!is_array($user) || !isset($user['id'], $user['name'], $user['email'], $user['role'])) {
         return null;
     }
-    return [
-        'id' => (int) $user['id'],
-        'name' => (string) $user['name'],
-        'email' => (string) $user['email'],
-        'role' => (string) $user['role'],
-    ];
+
+    $id = (int) $user['id'];
+    try {
+        $stmt = db()->prepare('SELECT id, name, email, role FROM users WHERE id = ? LIMIT 1');
+        $stmt->execute([$id]);
+        $row = $stmt->fetch();
+        if (!$row) {
+            unset($_SESSION['auth_user']);
+            return null;
+        }
+        $_SESSION['auth_user'] = [
+            'id' => (int) $row['id'],
+            'name' => (string) $row['name'],
+            'email' => (string) $row['email'],
+            'role' => (string) $row['role'],
+        ];
+        return $_SESSION['auth_user'];
+    } catch (Throwable $e) {
+        return [
+            'id' => $id,
+            'name' => (string) $user['name'],
+            'email' => (string) $user['email'],
+            'role' => (string) $user['role'],
+        ];
+    }
+}
+
+/**
+ * User id for orders — NULL for guests. Clears stale session if the user
+ * was deleted (e.g. after a database reset) to avoid foreign key errors.
+ */
+function resolveOrderUserId(): ?int
+{
+    $user = currentUser();
+    if ($user === null) {
+        return null;
+    }
+
+    $stmt = db()->prepare('SELECT id FROM users WHERE id = ? LIMIT 1');
+    $stmt->execute([$user['id']]);
+    if ($stmt->fetch()) {
+        return $user['id'];
+    }
+
+    ensureSession();
+    unset($_SESSION['auth_user']);
+    return null;
 }
 
 function loginUser(string $email, string $password): bool
@@ -53,12 +94,29 @@ function loginUser(string $email, string $password): bool
     if (!password_verify($password, (string) $row['password_hash'])) {
         return false;
     }
+    $userId = (int) $row['id'];
     $_SESSION['auth_user'] = [
-        'id' => (int) $row['id'],
+        'id' => $userId,
         'name' => (string) $row['name'],
         'email' => (string) $row['email'],
         'role' => (string) $row['role'],
     ];
+
+    try {
+        $phoneStmt = db()->prepare('SELECT phone FROM users WHERE id = ? LIMIT 1');
+        $phoneStmt->execute([$userId]);
+        $phoneRow = $phoneStmt->fetch();
+        $phone = trim((string) ($phoneRow['phone'] ?? ''));
+        if ($phone !== '') {
+            $link = db()->prepare(
+                'UPDATE orders SET user_id = ? WHERE user_id IS NULL AND contact_number = ?'
+            );
+            $link->execute([$userId, $phone]);
+        }
+    } catch (Throwable $e) {
+        // Non-fatal: login still succeeds
+    }
+
     return true;
 }
 

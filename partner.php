@@ -1,6 +1,10 @@
 <?php
 declare(strict_types=1);
-require_once __DIR__ . '/includes/db.php';
+$configFile = __DIR__ . '/config.php';
+$config = is_readable($configFile) ? require $configFile : ['use_database' => false];
+if (!empty($config['use_database'])) {
+    require_once __DIR__ . '/includes/db.php';
+}
 $error = ''; $success = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $biz_name   = trim((string)($_POST['biz_name']   ?? ''));
@@ -28,8 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($error==='' && !$agree) $error='You must agree to the Partner Terms and Conditions.';
     if ($error==='') {
         try {
-            $config = require __DIR__ . '/config.php';
-            if ($config['use_database']) {
+            if (!empty($config['use_database'])) {
                 $stmt = db()->prepare("INSERT INTO restaurant_applications (restaurant_name,cuisine_type,description,owner_name,owner_email,owner_phone,business_address,city,delivery_zones,operating_hours,avg_delivery_time,delivery_fee,min_order,payment_methods,bir_tin,business_permit,social_media,how_heard,status) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'pending')");
                 $stmt->execute([$biz_name,$category,'',''.($owner_first.' '.$owner_last),$email,$phone,$address,$city,'Metro Manila',$operating_hours,'60-90 mins',(int)$delivery_fee,0,'Cash on Delivery',$bir_tin,$permit_no,'','']);
             }

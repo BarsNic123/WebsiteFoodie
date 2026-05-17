@@ -165,7 +165,7 @@ async function testOrderProcessing() {
     showStatus('order-status', 'Testing order submission... (requires PHP server)', false);
     
     // This would normally work with PHP server
-    const response = await fetch('checkout.php', {
+    const response = await fetch('api/place-order.php', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -174,7 +174,11 @@ async function testOrderProcessing() {
     });
     
     const result = await response.json();
-    showStatus('order-status', `✓ Order submitted successfully! Order ID: ${result.order_id}`, true);
+    if (response.ok && result.success && result.order_id) {
+      showStatus('order-status', `✓ Order saved to database! Order ID: #${result.order_id}`, true);
+    } else {
+      showStatus('order-status', `✗ Order not saved: ${result.error || 'Unknown error'}`, false);
+    }
   } catch (error) {
     showStatus('order-status', `✗ Order submission failed: ${error.message}<br><strong>Note:</strong> This requires PHP server (XAMPP) to work properly.`, false);
   }

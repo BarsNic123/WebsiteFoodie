@@ -140,6 +140,28 @@ try {
             $stmt = $pdo->prepare('DELETE FROM menu_items WHERE id = ?');
             $stmt->execute([$id]);
             $success = "Menu item #{$id} deleted.";
+        } elseif ($action === 'update_order_status') {
+            $orderId = (int) ($_POST['order_id'] ?? 0);
+            $newStatus = trim((string) ($_POST['status'] ?? ''));
+            $allowed = ['pending', 'preparing', 'out_for_delivery', 'delivered', 'cancelled'];
+            if (!in_array($newStatus, $allowed, true)) {
+                throw new RuntimeException('Invalid order status.');
+            }
+            $cur = $pdo->prepare('SELECT status FROM orders WHERE id = ? LIMIT 1');
+            $cur->execute([$orderId]);
+            $row = $cur->fetch();
+            if (!$row) {
+                throw new RuntimeException('Order not found.');
+            }
+            $oldStatus = (string) $row['status'];
+            $upd = $pdo->prepare('UPDATE orders SET status = ? WHERE id = ?');
+            $upd->execute([$newStatus, $orderId]);
+            $hist = $pdo->prepare(
+                'INSERT INTO order_status_history (order_id, old_status, new_status, changed_by, note)
+                 VALUES (?, ?, ?, ?, ?)'
+            );
+            $hist->execute([$orderId, $oldStatus, $newStatus, (int) ($authUser['id'] ?? 0), 'Updated in admin']);
+            $success = "Order #{$orderId} marked as {$newStatus}.";
         }
     }
 } catch (Throwable $e) {
@@ -149,11 +171,26 @@ try {
 $categories = [];
 $restaurants = [];
 $menuItems = [];
+$orders = [];
 if (empty($errors)) {
     $pdo = db();
     $categories = $pdo->query('SELECT id, name, icon, filter_key FROM categories ORDER BY id')->fetchAll();
     $restaurants = $pdo->query('SELECT id, name, image, rating, delivery_time, delivery_fee, cuisines_json, tag, tag_style, category, is_open FROM restaurants ORDER BY id')->fetchAll();
     $menuItems = $pdo->query('SELECT id, restaurant_id, name, description, price FROM menu_items ORDER BY id')->fetchAll();
+    $orders = $pdo->query(
+        'SELECT o.id, o.full_name, o.contact_number, o.delivery_address, o.payment_method,
+                o.subtotal, o.delivery_fee, o.total_amount, o.status, o.created_at,
+                r.name AS restaurant_name
+         FROM orders o
+         INNER JOIN restaurants r ON r.id = o.restaurant_id
+         ORDER BY o.id DESC
+         LIMIT 100'
+    )->fetchAll();
+}
+
+function formatPeso(int $amount): string
+{
+    return '₱' . number_format($amount, 2);
 }
 ?>
 <!doctype html>
@@ -206,6 +243,50 @@ if (empty($errors)) {
     <?php endforeach; ?>
 
     <?php if (empty($errors)): ?>
+      <div class="card">
+        <h2 class="title">Orders</h2>
+        <p class="tiny">Latest customer orders from checkout.</p>
+        <?php if ($orders === []): ?>
+          <p class="tiny" style="margin-top:12px">No orders yet.</p>
+        <?php else: ?>
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th><th>Customer</th><th>Restaurant</th><th>Total</th><th>Payment</th><th>Status</th><th>Placed</th><th>Update</th>
+            </tr>
+          </thead>
+          <tbody>
+          <?php foreach ($orders as $o): ?>
+            <tr>
+              <td>#<?= (int) $o['id'] ?></td>
+              <td>
+                <strong><?= h($o['full_name']) ?></strong><br>
+                <span class="tiny"><?= h($o['contact_number']) ?></span>
+              </td>
+              <td><?= h($o['restaurant_name']) ?></td>
+              <td><?= h(formatPeso((int) $o['total_amount'])) ?></td>
+              <td><?= h($o['payment_method']) ?></td>
+              <td><?= h($o['status']) ?></td>
+              <td class="tiny"><?= h($o['created_at']) ?></td>
+              <td>
+                <form method="post" style="display:flex;gap:6px;align-items:center">
+                  <input type="hidden" name="action" value="update_order_status">
+                  <input type="hidden" name="order_id" value="<?= (int) $o['id'] ?>">
+                  <select name="status" style="min-width:140px">
+                    <?php foreach (['pending', 'preparing', 'out_for_delivery', 'delivered', 'cancelled'] as $st): ?>
+                      <option value="<?= h($st) ?>" <?= $o['status'] === $st ? 'selected' : '' ?>><?= h($st) ?></option>
+                    <?php endforeach; ?>
+                  </select>
+                  <button class="save" type="submit">Save</button>
+                </form>
+              </td>
+            </tr>
+          <?php endforeach; ?>
+          </tbody>
+        </table>
+        <?php endif; ?>
+      </div>
+
       <div class="card">
         <h2 class="title">Categories</h2>
         <table>

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>if (/\/foodieph\.html$/i.test(location.pathname)) location.replace('index.php');</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Foodie.PH — Fast. Fresh. Delivered.</title>
@@ -14,15 +15,15 @@
 <!-- TOP BAR -->
 <div class="topbar">
   📞 Globe: <strong>09177135477</strong> &nbsp;|&nbsp; Fast. Fresh. Nationwide Delivery &nbsp;|&nbsp;
-  <a href="#">New to Foodie.PH? Create an account →</a>
+  <a href="register.php">New to Foodie.PH? Create an account →</a>
 </div>
 
 <!-- NAV -->
 <nav>
   <div class="nav-inner">
-    <a href="#" class="logo">Foodie<span>.PH</span></a>
+    <a href="index.php" class="logo">Foodie<span>.PH</span></a>
     <div class="nav-links">
-      <a href="#">Home</a>
+      <a href="index.php">Home</a>
       <a href="#">Metro Manila</a>
       <a href="#">Cebu</a>
       <a href="#">Guidelines</a>
@@ -30,9 +31,7 @@
       <a href="#">Contact</a>
     </div>
     <div class="nav-actions">
-      <a href="admin.php" class="btn-ghost" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center;">Admin</a>
-      <a href="login.php" class="btn-ghost" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center;"><i class="fa fa-user" style="margin-right:6px;font-size:12px"></i>Login</a>
-      <a href="register.php" class="btn-primary" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center;">Create Account</a>
+      <!--NAV_SESSION-->
       <button class="cart-btn" onclick="openCart()">
         <i class="fas fa-shopping-bag"></i>
         Cart
@@ -72,7 +71,7 @@
 <!-- PROMOS -->
 <div class="container section" style="padding-bottom:0">
   <div class="promo-grid">
-    <div class="promo-card">
+    <div class="promo-card" id="promo-free-delivery" role="button" tabindex="0">
       <img src="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=800&q=60" alt="promo">
       <div class="promo-card-overlay">
         <h3>Free Delivery</h3>
@@ -80,7 +79,7 @@
         <span class="promo-cta">Order Now →</span>
       </div>
     </div>
-    <div class="promo-card">
+    <div class="promo-card" id="promo-new-arrivals" role="button" tabindex="0">
       <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&q=60" alt="promo">
       <div class="promo-card-overlay dark">
         <h3>New Arrivals</h3>
@@ -100,7 +99,7 @@
 </div>
 
 <!-- RESTAURANTS -->
-<div class="container section" style="padding-top:0">
+<div class="container section" id="restaurants-section" style="padding-top:0">
   <div class="section-header">
     <h2>Available <em>Restaurants</em></h2>
     <a href="#" class="view-all">View all</a>
@@ -257,9 +256,10 @@
       <div class="cart-sum-row"><span>Delivery Fee (10%)</span><span id="cart-delivery">₱0.00</span></div>
       <div class="cart-sum-row total"><span>Total</span><span id="cart-total">₱0.00</span></div>
     </div>
+    <!--CART_MY_ORDERS_LINK-->
     <button class="checkout-cta" id="checkout-btn">Proceed to Checkout →</button>
   </div>
-</div>
+  </div>
 
 <!-- TOAST -->
 <div id="toast"><i class="fas fa-check-circle"></i><span id="toast-msg"></span></div>
