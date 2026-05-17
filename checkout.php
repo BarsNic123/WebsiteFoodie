@@ -71,53 +71,51 @@ try {
     // Prepare items JSON
     $itemsJson = json_encode($data['cart'], JSON_UNESCAPED_UNICODE);
 
-    // Insert order
+    // Insert order with all fields
     $insertStmt = db()->prepare('
         INSERT INTO orders (
-            user_id, 
-            restaurant_id, 
-            items_json, 
-            subtotal, 
-            delivery_fee, 
-            total_amount, 
-            delivery_address, 
-            contact_number, 
-            status
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            user_id,
+            restaurant_id,
+            full_name,
+            contact_number,
+            delivery_address,
+            delivery_notes,
+            payment_method,
+            order_notes,
+            items_json,
+            subtotal,
+            delivery_fee,
+            total_amount,
+            status,
+            estimated_delivery
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ');
 
     $insertStmt->execute([
         $userId,
         (int)$data['restaurant_id'],
+        $data['full_name'],
+        $data['contact_number'],
+        $data['delivery_address'],
+        $data['delivery_notes'] ?? '',
+        $data['payment_method'],
+        $data['order_notes'] ?? '',
         $itemsJson,
-        (int)($subtotal * 100), // Convert to cents
+        (int)($subtotal * 100),
         (int)($deliveryFee * 100),
         (int)($totalAmount * 100),
-        $data['delivery_address'],
-        $data['contact_number'],
-        'pending'
+        'pending',
+        '60-90 minutes'
     ]);
 
     $orderId = (int)db()->lastInsertId();
 
-    // Log additional order notes if provided
-    if (!empty($data['delivery_notes']) || !empty($data['order_notes'])) {
-        $notes = [
-            'delivery_notes' => $data['delivery_notes'] ?? '',
-            'order_notes' => $data['order_notes'] ?? '',
-            'payment_method' => $data['payment_method']
-        ];
-        
-        // You could store these in a separate order_notes table if needed
-        // For now, we'll just include them in the response
-    }
-
     echo json_encode([
-        'success' => true,
-        'order_id' => $orderId,
-        'message' => 'Order placed successfully',
-        'total_amount' => number_format($totalAmount, 2),
-        'estimated_delivery' => '60-90 minutes'
+        'success'           => true,
+        'order_id'          => $orderId,
+        'message'           => 'Order placed successfully',
+        'total_amount'      => number_format($totalAmount, 2),
+        'estimated_delivery'=> '60-90 minutes'
     ]);
 
 } catch (RuntimeException $e) {
