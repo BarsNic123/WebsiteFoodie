@@ -32,6 +32,21 @@ if (!in_array('phone', $userCols, true)) {
     $pdo->exec("ALTER TABLE users ADD COLUMN phone VARCHAR(20) NOT NULL DEFAULT '' AFTER email");
     echo "Added column: users.phone\n";
 }
+// Shipping address columns
+$addressCols = [
+    'street_address' => "ALTER TABLE users ADD COLUMN street_address VARCHAR(300) NOT NULL DEFAULT '' AFTER phone",
+    'unit'           => "ALTER TABLE users ADD COLUMN unit VARCHAR(100) NOT NULL DEFAULT '' AFTER street_address",
+    'city'           => "ALTER TABLE users ADD COLUMN city VARCHAR(100) NOT NULL DEFAULT '' AFTER unit",
+    'state'          => "ALTER TABLE users ADD COLUMN state VARCHAR(100) NOT NULL DEFAULT '' AFTER city",
+    'postal_code'    => "ALTER TABLE users ADD COLUMN postal_code VARCHAR(20) NOT NULL DEFAULT '' AFTER state",
+    'country'        => "ALTER TABLE users ADD COLUMN country VARCHAR(100) NOT NULL DEFAULT 'Philippines' AFTER postal_code",
+];
+foreach ($addressCols as $col => $sql) {
+    if (!in_array($col, $userCols, true)) {
+        $pdo->exec($sql);
+        echo "Added column: users.{$col}\n";
+    }
+}
 if (!in_array('email_notifications', $userCols, true)) {
     $pdo->exec("ALTER TABLE users ADD COLUMN email_notifications TINYINT(1) NOT NULL DEFAULT 1 AFTER role");
     echo "Added column: users.email_notifications\n";
