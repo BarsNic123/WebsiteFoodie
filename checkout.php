@@ -1,134 +1,54 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/includes/db.php';
-require_once __DIR__ . '/includes/auth.php';
-
-header('Content-Type: application/json');
-
-// Enable CORS for local development
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
-
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    exit(0);
-}
-
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo json_encode(['success' => false, 'error' => 'Method not allowed']);
+/**
+ * Checkout page entry point.
+ * GET  → checkout form (session-aware nav, no Admin link)
+ * POST → save order to MySQL (JSON body)
+ */
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    require __DIR__ . '/api/place-order.php';
     exit;
 }
 
-try {
-    // Get JSON input
-    $input = file_get_contents('php://input');
-    $data = json_decode($input, true);
-    
-    if (!$data) {
-        throw new RuntimeException('Invalid JSON data');
-    }
+$configFile = __DIR__ . '/config.php';
+$dbError = null;
 
-    // Validate required fields
-    $required = ['full_name', 'contact_number', 'delivery_address', 'payment_method', 'cart', 'restaurant_id'];
-    foreach ($required as $field) {
-        if (empty($data[$field])) {
-            throw new RuntimeException("Missing required field: {$field}");
+if (!is_readable($configFile)) {
+    $dbError = 'Database is not configured. Copy <code>config.sample.php</code> to <code>config.php</code> in the project folder.';
+} else {
+    $config = require $configFile;
+    if (empty($config['use_database'])) {
+        $dbError = 'Orders are not saved until you set <code>use_database => true</code> in config.php.';
+    } else {
+        try {
+            require_once __DIR__ . '/includes/db.php';
+            db()->query('SELECT 1 FROM orders LIMIT 1');
+        } catch (Throwable $e) {
+            $dbError = 'Cannot connect to MySQL or the orders table is missing. Start MySQL in XAMPP and import <code>sql/schema.sql</code>.';
         }
     }
-
-    // Validate cart data
-    if (!is_array($data['cart']) || empty($data['cart'])) {
-        throw new RuntimeException('Cart cannot be empty');
-    }
-
-    // Get current user (optional - allow guest orders)
-    $user = currentUser();
-    $userId = $user ? $user['id'] : null;
-
-    // Calculate totals
-    $subtotal = 0;
-    foreach ($data['cart'] as $item) {
-        if (!isset($item['price']) || !isset($item['quantity'])) {
-            throw new RuntimeException('Invalid cart item data');
-        }
-        $subtotal += (float)$item['price'] * (int)$item['quantity'];
-    }
-
-    // Get restaurant info for delivery fee
-    $stmt = db()->prepare('SELECT delivery_fee FROM restaurants WHERE id = ? LIMIT 1');
-    $stmt->execute([(int)$data['restaurant_id']]);
-    $restaurant = $stmt->fetch();
-    
-    if (!$restaurant) {
-        throw new RuntimeException('Restaurant not found');
-    }
-
-    $deliveryFee = (float)$restaurant['delivery_fee'];
-    $totalAmount = $subtotal + $deliveryFee;
-
-    // Prepare items JSON
-    $itemsJson = json_encode($data['cart'], JSON_UNESCAPED_UNICODE);
-
-    // Insert order with all fields
-    $insertStmt = db()->prepare('
-        INSERT INTO orders (
-            user_id,
-            restaurant_id,
-            full_name,
-            contact_number,
-            delivery_address,
-            delivery_notes,
-            payment_method,
-            order_notes,
-            items_json,
-            subtotal,
-            delivery_fee,
-            total_amount,
-            status,
-            estimated_delivery
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ');
-
-    $insertStmt->execute([
-        $userId,
-        (int)$data['restaurant_id'],
-        $data['full_name'],
-        $data['contact_number'],
-        $data['delivery_address'],
-        $data['delivery_notes'] ?? '',
-        $data['payment_method'],
-        $data['order_notes'] ?? '',
-        $itemsJson,
-        (int)($subtotal * 100),
-        (int)($deliveryFee * 100),
-        (int)($totalAmount * 100),
-        'pending',
-        '60-90 minutes'
-    ]);
-
-    $orderId = (int)db()->lastInsertId();
-
-    echo json_encode([
-        'success'           => true,
-        'order_id'          => $orderId,
-        'message'           => 'Order placed successfully',
-        'total_amount'      => number_format($totalAmount, 2),
-        'estimated_delivery'=> '60-90 minutes'
-    ]);
-
-} catch (RuntimeException $e) {
-    http_response_code(400);
-    echo json_encode([
-        'success' => false,
-        'error' => $e->getMessage()
-    ]);
-} catch (Exception $e) {
-    error_log('Checkout error: ' . $e->getMessage());
-    http_response_code(500);
-    echo json_encode([
-        'success' => false,
-        'error' => 'Internal server error'
-    ]);
 }
+
+if ($dbError !== null) {
+    header('Content-Type: text/html; charset=utf-8');
+    http_response_code(503);
+    echo '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Checkout unavailable</title>';
+    echo '<link rel="stylesheet" href="foodieph.css"></head><body style="padding:40px;max-width:600px;margin:0 auto">';
+    echo '<h1>Checkout unavailable</h1><p>' . $dbError . '</p>';
+    echo '<p><a href="index.php">← Back to home</a></p></body></html>';
+    exit;
+}
+
+require_once __DIR__ . '/includes/auth.php';
+require_once __DIR__ . '/includes/nav.php';
+
+$html = file_get_contents(__DIR__ . '/checkout.html');
+if ($html === false) {
+    http_response_code(500);
+    echo 'Could not load checkout page.';
+    exit;
+}
+
+header('Content-Type: text/html; charset=utf-8');
+echo applySessionNav($html, 'checkout');

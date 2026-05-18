@@ -2,22 +2,54 @@
 declare(strict_types=1);
 require_once __DIR__ . '/includes/auth.php';
 $error = '';
-$next = (string)($_GET['next'] ?? $_POST['next'] ?? 'index.php');
+$next = (string) ($_GET['next'] ?? $_POST['next'] ?? 'index.php');
 $next = trim($next) !== '' ? $next : 'index.php';
-if (str_starts_with($next,'http://')||str_starts_with($next,'https://')) $next='index.php';
+if (str_starts_with($next, 'http://') || str_starts_with($next, 'https://')) {
+    $next = 'index.php';
+}
+// Admin login: ?next=admin.php or ?admin=1
+if (!empty($_GET['admin']) || !empty($_POST['admin_login'])) {
+    $next = 'admin.php';
+}
+$isAdminLogin = str_contains($next, 'admin.php');
+$registered = isset($_GET['registered']);
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST' && $isAdminLogin) {
+    $user = currentUser();
+    if ($user !== null && ($user['role'] ?? '') === 'admin') {
+        header('Location: admin.php');
+        exit;
+    }
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email    = (string)($_POST['email']    ?? '');
-    $password = (string)($_POST['password'] ?? '');
+    $email = (string) ($_POST['email'] ?? '');
+    $password = (string) ($_POST['password'] ?? '');
     try {
-        if (loginUser($email, $password)) { header('Location: '.$next); exit; }
-        $error = 'Invalid email or password.';
-    } catch (Throwable $e) { $error = $e->getMessage(); }
+        if (!loginUser($email, $password)) {
+            $error = 'Invalid email or password.';
+        } elseif ($isAdminLogin) {
+            $user = currentUser();
+            if ($user === null || ($user['role'] ?? '') !== 'admin') {
+                logoutUser();
+                $error = 'This account does not have admin access. Use Create Account to register as staff, or contact support.';
+            } else {
+                header('Location: admin.php');
+                exit;
+            }
+        } else {
+            header('Location: ' . $next);
+            exit;
+        }
+    } catch (Throwable $e) {
+        $error = $e->getMessage();
+    }
 }
 ?><!doctype html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Login - Foodie.PH</title>
+<title><?= $isAdminLogin ? 'Admin Sign In' : 'Login' ?> - Foodie.PH</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fraunces:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -71,12 +103,26 @@ nav{background:#fff;border-bottom:1px solid var(--border);box-shadow:0 2px 12px 
 <div class="box">
   <div class="tab-bar">
     <button class="tab-btn active">Log In</button>
-    <button class="tab-btn" onclick="window.location='register.php'">Create Account</button>
+    <button class="tab-btn" onclick="window.location='<?= $isAdminLogin ? 'register.php?admin=1' : 'register.php' ?>'">Create Account</button>
   </div>
-  <h1 class="box-title">Welcome <em>Back</em></h1>
-  <p class="box-sub">Sign in to your Foodie.PH account to continue ordering.</p>
+  <h1 class="box-title"><?= $isAdminLogin ? 'Admin <em>Sign In</em>' : 'Welcome <em>Back</em>' ?></h1>
+  <p class="box-sub"><?= $isAdminLogin
+      ? 'Sign in with your admin account to manage restaurants, menus, and orders. Admins use the same login as customers.'
+      : 'Sign in to your Foodie.PH account to continue ordering.' ?></p>
+  <?php if ($registered && $isAdminLogin): ?>
+  <div class="alert" style="background:#e8f8ee;color:#146c2f;border:1px solid #c3ebd0;margin-bottom:16px">
+    <i class="fas fa-circle-check"></i> Admin account created. Sign in below to open the admin panel.
+  </div>
+  <?php endif; ?>
+  <?php if ($isAdminLogin): ?>
+  <div class="info-bar" style="background:#fff8e6;border-color:#ffe0a3;color:#8a5a00;margin-bottom:16px">
+    <i class="fas fa-shield-halved"></i>
+    No account yet? <a href="register.php?admin=1" style="color:#8a5a00;font-weight:700">Create an admin account</a>
+  </div>
+  <?php endif; ?>
   <form method="post">
     <input type="hidden" name="next" value="<?= htmlspecialchars($next, ENT_QUOTES, 'UTF-8') ?>">
+    <?php if ($isAdminLogin): ?><input type="hidden" name="admin_login" value="1"><?php endif; ?>
     <div class="form-group">
       <label>Email Address</label>
       <input type="email" name="email" placeholder="Enter your email" required value="<?= htmlspecialchars($_POST['email'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
@@ -91,7 +137,8 @@ nav{background:#fff;border-bottom:1px solid var(--border);box-shadow:0 2px 12px 
   <?php if ($error !== ''): ?><div class="alert alert-error"><i class="fas fa-circle-exclamation"></i> <?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></div><?php endif; ?>
   <div class="divider">or</div>
   <div class="links">
-    No account yet? <a href="register.php">Create one free</a><br>
+    No account yet? <a href="register.php">Create one free</a> &nbsp;·&nbsp;
+    <a href="login.php?next=admin.php&admin=1">Admin sign in</a><br>
     Want to list your restaurant? <a href="partner.php">Partner With Us</a>
   </div>
 </div>

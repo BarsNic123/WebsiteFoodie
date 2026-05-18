@@ -110,13 +110,26 @@ function closeModal() {
 }
 
 // ── CART ──
+function saveCart() {
+  try {
+    sessionStorage.setItem('foodieph_cart', JSON.stringify(cart));
+  } catch (e) {
+    console.warn('Could not save cart', e);
+  }
+}
+
 function addToCart(itemId) {
   const item = currentRestaurant.menu.find(m => m.id === itemId);
   if (!item) return;
+  if (cart.length && cart[0].restaurantId !== currentRestaurant.id) {
+    if (!confirm('Your cart has items from another restaurant. Clear cart and add this item?')) return;
+    cart = [];
+  }
   const existing = cart.find(c => c.id === itemId);
   if (existing) existing.quantity++;
   else cart.push({ ...item, quantity: 1, restaurantId: currentRestaurant.id, restaurantName: currentRestaurant.name, deliveryFee: currentRestaurant.deliveryFee });
   updateCart();
+  saveCart();
   toast(`${item.name} added to cart`);
 }
 
@@ -124,10 +137,11 @@ window.removeFromCart = itemId => {
   const i = cart.findIndex(c => c.id === itemId);
   if (i > -1) { if (cart[i].quantity > 1) cart[i].quantity--; else cart.splice(i, 1); }
   updateCart();
+  saveCart();
 };
 window.addCartQty = itemId => {
   const item = cart.find(c => c.id === itemId);
-  if (item) { item.quantity++; updateCart(); }
+  if (item) { item.quantity++; updateCart(); saveCart(); }
 };
 
 function updateCart() {
@@ -187,11 +201,32 @@ function handleSearch() {
 
 // ── EVENTS ──
 document.getElementById('modal-overlay').addEventListener('click', e => { if (e.target === document.getElementById('modal-overlay')) closeModal(); });
+function scrollToRestaurants() {
+  document.getElementById('restaurants-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+document.getElementById('promo-free-delivery')?.addEventListener('click', () => {
+  scrollToRestaurants();
+  setFilter('fast-food');
+  toast('Free delivery on orders over ₱500 — add items and checkout!');
+});
+document.getElementById('promo-free-delivery')?.addEventListener('keydown', e => {
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); document.getElementById('promo-free-delivery')?.click(); }
+});
+
+document.getElementById('promo-new-arrivals')?.addEventListener('click', () => {
+  scrollToRestaurants();
+  setFilter('all');
+  toast('Browse all restaurants — including our newest partners!');
+});
+document.getElementById('promo-new-arrivals')?.addEventListener('keydown', e => {
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); document.getElementById('promo-new-arrivals')?.click(); }
+});
+
 document.getElementById('checkout-btn').addEventListener('click', () => {
   if (!cart.length) { toast('Your cart is empty!'); return; }
-  // Redirect to checkout page with cart data
-  const cartData = encodeURIComponent(JSON.stringify(cart));
-  window.location.href = `checkout.html?cart=${cartData}`;
+  saveCart();
+  window.location.href = 'checkout.php';
 });
 document.querySelectorAll('.filter-tab').forEach(btn => {
   btn.addEventListener('click', () => setFilter(btn.dataset.filter));

@@ -1,8 +1,8 @@
 <?php
+declare(strict_types=1);
+
 /**
- * Copy this file to config.php and adjust.
- * - use_database false: api/data.php reads data.json (no MySQL).
- * - use_database true: run sql/schema.sql, create DB, then php api/seed.php
+ * Copy this file to config.php and adjust credentials for your XAMPP setup.
  */
 return [
     'use_database' => true,
@@ -10,8 +10,8 @@ return [
         'host' => '127.0.0.1',
         'port' => '3306',
         'name' => 'foodieph',
+        'charset' => 'utf8mb4',
         'user' => 'root',
         'password' => '',
-        'charset' => 'utf8mb4',
     ],
 ];
