@@ -5,7 +5,7 @@ require_once __DIR__ . '/includes/db.php';
 $authUser = currentUser();
 $isAdmin = $authUser !== null && $authUser['role'] === 'admin';
 $error = ''; $success = '';
-$accountType = 'user';
+$accountType = 'rider';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $first    = trim((string)($_POST['first_name']  ?? ''));
     $middle   = trim((string)($_POST['middle_name'] ?? ''));
@@ -18,7 +18,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $barangay       = trim((string)($_POST['barangay']    ?? ''));
     $street         = trim((string)($_POST['street']      ?? ''));
     $postal         = trim((string)($_POST['postal']      ?? ''));
-    $agree          = isset($_POST['agree']);
+    $accountType    = 'rider';
+    $driverLicense  = trim((string)($_POST['driver_license'] ?? ''));
+    $vehicleType    = trim((string)($_POST['vehicle_type']  ?? ''));
+    $vehiclePlate   = trim((string)($_POST['vehicle_plate'] ?? ''));
     $agree          = isset($_POST['agree']);
     $nameParts      = array_filter([$first, $middle, $last], fn($val) => $val !== '');
     $name           = implode(' ', $nameParts);
@@ -26,6 +29,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) { $error = 'Please enter a valid email address.'; }
     elseif (strlen($password) < 8)             { $error = 'Password must be at least 8 characters.'; }
     elseif ($password !== $confirm)            { $error = 'Passwords do not match.'; }
+    elseif ($accountType === 'rider' && $driverLicense === '') { $error = 'Please enter your driver license number.'; }
+    elseif ($accountType === 'rider' && $vehicleType === '') { $error = 'Please select your vehicle type.'; }
+    elseif ($accountType === 'rider' && $vehiclePlate === '') { $error = 'Please enter your vehicle plate number.'; }
     elseif (!$agree)                           { $error = 'You must agree to the Terms & Conditions and Privacy Policy.'; }
     else {
         try {
@@ -34,6 +40,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($config['use_database']) {
                 db()->prepare("UPDATE users SET first_name=?,middle_name=?,last_name=?,phone=?,city=?,state=?,street_address=?,postal_code=?,email_notifications=1 WHERE id=?")
                    ->execute([$first,$middle,$last,$phone,$city,$barangay,$street,$postal,$userId]);
+                if ($accountType === 'rider') {
+                    $uploadDir = __DIR__ . '/uploads/riders/';
+                    if (!is_dir($uploadDir)) {
+                        mkdir($uploadDir, 0777, true);
+                    }
+                    $licenseUrl = '';
+                    if (isset($_FILES['driver_license_img']) && $_FILES['driver_license_img']['error'] === UPLOAD_ERR_OK) {
+                        $ext = pathinfo($_FILES['driver_license_img']['name'], PATHINFO_EXTENSION);
+                        $filename = 'license_' . $userId . '_' . time() . '.' . $ext;
+                        if (move_uploaded_file($_FILES['driver_license_img']['tmp_name'], $uploadDir . $filename)) {
+                            $licenseUrl = 'uploads/riders/' . $filename;
+                        }
+                    }
+                    $otherDocsUrl = '';
+                    if (isset($_FILES['other_documents']) && $_FILES['other_documents']['error'] === UPLOAD_ERR_OK) {
+                        $ext = pathinfo($_FILES['other_documents']['name'], PATHINFO_EXTENSION);
+                        $filename = 'docs_' . $userId . '_' . time() . '.' . $ext;
+                        if (move_uploaded_file($_FILES['other_documents']['tmp_name'], $uploadDir . $filename)) {
+                            $otherDocsUrl = 'uploads/riders/' . $filename;
+                        }
+                    }
+
+                    db()->prepare("INSERT INTO riders (user_id, driver_license, vehicle_type, vehicle_plate, license_image_url, other_documents_url, preferred_city) VALUES (?, ?, ?, ?, ?, ?, ?)")
+                       ->execute([$userId, $driverLicense, $vehicleType, $vehiclePlate, $licenseUrl, $otherDocsUrl, $city]);
+                }
             }
             $success = 'Account created successfully!';
         } catch (Throwable $e) { $error = $e->getMessage(); }
@@ -57,7 +88,7 @@ $barangays = [
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Create Account - Foodie.PH</title>
+<title>Apply as Rider - Foodie.PH</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fraunces:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -146,8 +177,8 @@ nav{background:#fff;border-bottom:1px solid var(--border);position:sticky;top:0;
       <button class="tab-btn" onclick="window.location='login.php'">Log In</button>
       <button class="tab-btn active">Create Account</button>
     </div>
-    <h1 class="card-title">Create your account</h1>
-    <p class="card-sub">Complete the registration to start using Foodie.PH.</p>
+    <h1 class="card-title">Apply as a Rider</h1>
+    <p class="card-sub">Complete the application to join the Foodie.PH delivery fleet.</p>
 
     <?php if ($success !== ''): ?>
       <div class="alert alert-ok"><i class="fas fa-circle-check"></i><span><?= htmlspecialchars($success, ENT_QUOTES, 'UTF-8') ?> <a href="login.php">Log in now &rarr;</a></span></div>
@@ -219,7 +250,48 @@ nav{background:#fff;border-bottom:1px solid var(--border);position:sticky;top:0;
         </div>
       </div>
 
-
+      <!-- Rider Details -->
+      <div id="rider-fields">
+        <div class="sec-label"><i class="fas fa-motorcycle"></i> Rider Details</div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:18px;">Rider accounts require delivery partner details so we can approve your application.</p>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Vehicle type <span class="req">*</span></label>
+            <div class="input-wrap has-select">
+              <i class="fas fa-motorcycle"></i>
+              <select name="vehicle_type" id="vehicle-type" value="<?= v('vehicle_type') ?>">
+                <option value="">Select vehicle type</option>
+                <option value="Motorcycle" <?= v('vehicle_type')==='Motorcycle' ? 'selected' : '' ?>>Motorcycle</option>
+                <option value="Tricycle" <?= v('vehicle_type')==='Tricycle' ? 'selected' : '' ?>>Tricycle</option>
+                <option value="Bicycle" <?= v('vehicle_type')==='Bicycle' ? 'selected' : '' ?>>Bicycle</option>
+                <option value="E-bike" <?= v('vehicle_type')==='E-bike' ? 'selected' : '' ?>>E-bike</option>
+                <option value="Car" <?= v('vehicle_type')==='Car' ? 'selected' : '' ?>>Car</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Vehicle plate <span class="req">*</span></label>
+            <div class="input-wrap"><i class="fas fa-id-card"></i><input type="text" name="vehicle_plate" placeholder="ABC 1234" value="<?= v('vehicle_plate') ?>"></div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Driver license number <span class="req">*</span></label>
+            <div class="input-wrap"><i class="fas fa-id-badge"></i><input type="text" name="driver_license" placeholder="1234567890" value="<?= v('driver_license') ?>"></div>
+          </div>
+          <div class="form-group"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Driver license image <span class="req">*</span></label>
+            <input type="file" name="driver_license_img" accept="image/*" style="width: 100%; padding: 10px; border: 1.5px solid var(--border); border-radius: 12px; background: #fff;" required>
+          </div>
+          <div class="form-group">
+            <label>Other documents</label>
+            <input type="file" name="other_documents" accept="image/*,.pdf" style="width: 100%; padding: 10px; border: 1.5px solid var(--border); border-radius: 12px; background: #fff;">
+          </div>
+        </div>
+      </div>
 
       <!-- Account Security -->
       <div class="sec-label"><i class="fas fa-shield-halved"></i> Account Security</div>

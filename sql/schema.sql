@@ -80,6 +80,7 @@ CREATE TABLE IF NOT EXISTS menu_items (
 CREATE TABLE IF NOT EXISTS users (
   id                   INT UNSIGNED  NOT NULL AUTO_INCREMENT,
   first_name           VARCHAR(80)   NOT NULL  DEFAULT '',
+  middle_name          VARCHAR(80)   NOT NULL  DEFAULT '',
   last_name            VARCHAR(80)   NOT NULL  DEFAULT '',
   name                 VARCHAR(160)  NOT NULL  COMMENT 'Full name (first + last), kept for backward compat',
   email                VARCHAR(190)  NOT NULL,
@@ -91,7 +92,7 @@ CREATE TABLE IF NOT EXISTS users (
   postal_code          VARCHAR(20)   NOT NULL  DEFAULT '',
   country              VARCHAR(100)  NOT NULL  DEFAULT 'Philippines',
   password_hash        VARCHAR(255)  NOT NULL,
-  role                 ENUM('admin','user') NOT NULL DEFAULT 'user',
+  role                 ENUM('admin','user','rider') NOT NULL DEFAULT 'user',
   email_notifications  TINYINT(1)   NOT NULL  DEFAULT 1 COMMENT '1=opted in from register checkbox',
   is_active            TINYINT(1)   NOT NULL  DEFAULT 1,
   last_login_at        TIMESTAMP    NULL       DEFAULT NULL,
@@ -100,7 +101,25 @@ CREATE TABLE IF NOT EXISTS users (
   UNIQUE KEY uq_email (email),
   KEY idx_role (role)
 ) ENGINE=InnoDB
-  COMMENT='Customer and admin user accounts';
+  COMMENT='Customer, rider, and admin user accounts';
+
+CREATE TABLE IF NOT EXISTS riders (
+  id             INT UNSIGNED  NOT NULL AUTO_INCREMENT,
+  user_id        INT UNSIGNED  NOT NULL,
+  driver_license VARCHAR(100)  NOT NULL DEFAULT '' COMMENT 'Driver license or permit number',
+  vehicle_type   VARCHAR(100)  NOT NULL DEFAULT '' COMMENT 'Motorcycle, tricycle, bicycle, etc.',
+  vehicle_plate  VARCHAR(50)   NOT NULL DEFAULT '' COMMENT 'Vehicle plate number',
+  license_image_url VARCHAR(255) NOT NULL DEFAULT '' COMMENT 'Path to driver license image',
+  other_documents_url VARCHAR(255) NOT NULL DEFAULT '' COMMENT 'Path to other documents',
+  preferred_city VARCHAR(100)  NOT NULL DEFAULT '' COMMENT 'Primary delivery city',
+  created_at     TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_rider_user (user_id),
+  KEY idx_preferred_city (preferred_city),
+  CONSTRAINT fk_riders_user FOREIGN KEY (user_id) REFERENCES users (id)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB
+  COMMENT='Delivery rider profiles for registered riders';
 
 -- ============================================================
 -- 5. ORDERS

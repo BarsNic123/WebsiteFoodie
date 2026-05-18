@@ -62,10 +62,12 @@ function loginUser(string $email, string $password): bool
     return true;
 }
 
-function registerUser(string $name, string $email, string $password): int
+function registerUser(string $name, string $email, string $password, string $role = 'user'): int
 {
     $name = trim($name);
     $email = trim($email);
+    $role = trim($role);
+    $allowedRoles = ['admin', 'user', 'rider'];
     if ($name === '' || $email === '' || $password === '') {
         throw new RuntimeException('All fields are required.');
     }
@@ -74,6 +76,9 @@ function registerUser(string $name, string $email, string $password): int
     }
     if (strlen($password) < 6) {
         throw new RuntimeException('Password must be at least 6 characters.');
+    }
+    if (!in_array($role, $allowedRoles, true)) {
+        throw new RuntimeException('Invalid account type.');
     }
     $hash = password_hash($password, PASSWORD_DEFAULT);
     $pdo = db();
@@ -84,7 +89,7 @@ function registerUser(string $name, string $email, string $password): int
     }
 
     $ins = $pdo->prepare('INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)');
-    $ins->execute([$name, $email, $hash, 'user']);
+    $ins->execute([$name, $email, $hash, $role]);
     return (int) $pdo->lastInsertId();
 }
 

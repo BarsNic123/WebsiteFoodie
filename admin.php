@@ -8,7 +8,7 @@ $authUser = currentUser();
 $root = __DIR__;
 $configFile = $root . '/config.php';
 $errors = [];
-$success = '';
+$success = '';  
 
 if (!is_readable($configFile)) {
     $errors[] = 'Missing config.php. Copy config.sample.php to config.php first.';
@@ -149,11 +149,13 @@ try {
 $categories = [];
 $restaurants = [];
 $menuItems = [];
+$ridersList = [];
 if (empty($errors)) {
     $pdo = db();
     $categories = $pdo->query('SELECT id, name, icon, filter_key FROM categories ORDER BY id')->fetchAll();
     $restaurants = $pdo->query('SELECT id, name, image, rating, delivery_time, delivery_fee, cuisines_json, tag, tag_style, category, is_open FROM restaurants ORDER BY id')->fetchAll();
     $menuItems = $pdo->query('SELECT id, restaurant_id, name, description, price FROM menu_items ORDER BY id')->fetchAll();
+    $ridersList = $pdo->query('SELECT u.id as user_id, u.first_name, u.middle_name, u.last_name, u.email, u.phone, r.id as rider_id, r.driver_license, r.vehicle_type, r.vehicle_plate, r.license_image_url, r.other_documents_url, r.preferred_city, r.created_at FROM users u JOIN riders r ON u.id = r.user_id ORDER BY r.created_at DESC')->fetchAll();
 }
 ?>
 <!doctype html>
@@ -362,6 +364,45 @@ if (empty($errors)) {
               <td><button class="save" type="submit">Add</button></td>
             </form>
           </tr>
+          </tbody>
+        </table>
+      </div>
+      </div>
+
+      <div class="card">
+        <h2 class="title">Registered Riders</h2>
+        <table>
+          <thead>
+            <tr><th>User ID</th><th>Name</th><th>Email / Phone</th><th>Vehicle</th><th>Plate</th><th>License / Docs</th><th>City</th><th>Applied On</th></tr>
+          </thead>
+          <tbody>
+          <?php foreach ($ridersList as $rider): ?>
+            <tr>
+              <td><?= (int) $rider['user_id'] ?></td>
+              <td><?= h(trim($rider['first_name'] . ' ' . $rider['middle_name'] . ' ' . $rider['last_name'])) ?></td>
+              <td>
+                <?= h($rider['email']) ?><br>
+                <span class="tiny"><?= h($rider['phone']) ?></span>
+              </td>
+              <td><?= h($rider['vehicle_type']) ?></td>
+              <td><?= h($rider['vehicle_plate']) ?></td>
+              <td>
+                <?php if ($rider['license_image_url']): ?>
+                  <a href="<?= h($rider['license_image_url']) ?>" target="_blank">License</a><br>
+                <?php else: ?>
+                  <span class="tiny">No License</span><br>
+                <?php endif; ?>
+                <?php if ($rider['other_documents_url']): ?>
+                  <a href="<?= h($rider['other_documents_url']) ?>" target="_blank">Other Docs</a>
+                <?php endif; ?>
+              </td>
+              <td><?= h($rider['preferred_city']) ?></td>
+              <td><?= h($rider['created_at']) ?></td>
+            </tr>
+          <?php endforeach; ?>
+          <?php if (empty($ridersList)): ?>
+            <tr><td colspan="8">No riders registered yet.</td></tr>
+          <?php endif; ?>
           </tbody>
         </table>
       </div>

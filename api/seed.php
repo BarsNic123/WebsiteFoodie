@@ -56,6 +56,33 @@ if (!in_array('is_active', $userCols, true)) {
     echo "Added column: users.is_active\n";
 }
 
+$roleColumn = $pdo->query("SHOW COLUMNS FROM users LIKE 'role'")->fetch();
+if ($roleColumn && strpos($roleColumn['Type'] ?? '', 'rider') === false) {
+    $pdo->exec("ALTER TABLE users MODIFY COLUMN role ENUM('admin','user','rider') NOT NULL DEFAULT 'user'");
+    echo "Updated users.role to include rider\n";
+}
+
+if ($pdo->query("SHOW TABLES LIKE 'riders'")->fetch() === false) {
+    $pdo->exec(<<<'SQL'
+CREATE TABLE IF NOT EXISTS riders (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  user_id INT UNSIGNED NOT NULL,
+  driver_license VARCHAR(100) NOT NULL DEFAULT '' COMMENT 'Driver license or permit number',
+  vehicle_type VARCHAR(100) NOT NULL DEFAULT '' COMMENT 'Motorcycle, tricycle, bicycle, etc.',
+  vehicle_plate VARCHAR(50) NOT NULL DEFAULT '' COMMENT 'Vehicle plate number',
+  preferred_city VARCHAR(100) NOT NULL DEFAULT '' COMMENT 'Primary delivery city',
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_rider_user (user_id),
+  KEY idx_preferred_city (preferred_city),
+  CONSTRAINT fk_riders_user FOREIGN KEY (user_id) REFERENCES users (id)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB;
+SQL
+    );
+    echo "Created table: riders\n";
+}
+
 // ?? Now run data inserts inside a transaction ??
 $pdo->beginTransaction();
 try {

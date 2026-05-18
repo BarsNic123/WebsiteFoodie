@@ -5,7 +5,7 @@ require_once __DIR__ . '/includes/db.php';
 $authUser = currentUser();
 $isAdmin = $authUser !== null && $authUser['role'] === 'admin';
 $error = ''; $success = '';
-$accountType = 'user';
+$accountType = 'admin';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $first    = trim((string)($_POST['first_name']  ?? ''));
     $middle   = trim((string)($_POST['middle_name'] ?? ''));
@@ -17,8 +17,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $city           = trim((string)($_POST['city']        ?? ''));
     $barangay       = trim((string)($_POST['barangay']    ?? ''));
     $street         = trim((string)($_POST['street']      ?? ''));
-    $postal         = trim((string)($_POST['postal']      ?? ''));
-    $agree          = isset($_POST['agree']);
+    $postal         = '';
+    $accountType    = 'admin';
     $agree          = isset($_POST['agree']);
     $nameParts      = array_filter([$first, $middle, $last], fn($val) => $val !== '');
     $name           = implode(' ', $nameParts);
@@ -57,7 +57,7 @@ $barangays = [
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Create Account - Foodie.PH</title>
+<title>Create Admin - Foodie.PH</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fraunces:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -146,8 +146,8 @@ nav{background:#fff;border-bottom:1px solid var(--border);position:sticky;top:0;
       <button class="tab-btn" onclick="window.location='login.php'">Log In</button>
       <button class="tab-btn active">Create Account</button>
     </div>
-    <h1 class="card-title">Create your account</h1>
-    <p class="card-sub">Complete the registration to start using Foodie.PH.</p>
+    <h1 class="card-title">Create Admin Account</h1>
+    <p class="card-sub">Create an administrator account to manage Foodie.PH.</p>
 
     <?php if ($success !== ''): ?>
       <div class="alert alert-ok"><i class="fas fa-circle-check"></i><span><?= htmlspecialchars($success, ENT_QUOTES, 'UTF-8') ?> <a href="login.php">Log in now &rarr;</a></span></div>
@@ -181,42 +181,6 @@ nav{background:#fff;border-bottom:1px solid var(--border);position:sticky;top:0;
       <div class="form-group">
         <label>Email address <span class="req">*</span></label>
         <div class="input-wrap"><i class="fas fa-envelope"></i><input type="email" name="email" placeholder="you@email.com" required value="<?= v('email') ?>"></div>
-      </div>
-
-      <!-- Address -->
-      <div class="sec-label"><i class="fas fa-location-dot"></i> Delivery Address</div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>City <span class="req">*</span></label>
-          <div class="input-wrap has-select">
-            <i class="fas fa-city"></i>
-            <select name="city" id="city-select" required onchange="updateBarangays()">
-              <option value="">Select city</option>
-              <?php foreach($cities as $c): ?>
-              <option value="<?= htmlspecialchars($c,ENT_QUOTES,'UTF-8') ?>" <?= v('city')===$c?'selected':'' ?>><?= htmlspecialchars($c,ENT_QUOTES,'UTF-8') ?></option>
-              <?php endforeach; ?>
-            </select>
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Barangay <span class="req">*</span></label>
-          <div class="input-wrap has-select">
-            <i class="fas fa-map-pin"></i>
-            <select name="barangay" id="barangay-select" required>
-              <option value="">Select city first</option>
-            </select>
-          </div>
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Street <span class="req">*</span></label>
-          <div class="input-wrap"><i class="fas fa-road"></i><input type="text" name="street" placeholder="Unit/Building, Street Name" value="<?= v('street') ?>"></div>
-        </div>
-        <div class="form-group">
-          <label>Zipcode</label>
-          <div class="input-wrap"><i class="fas fa-hashtag"></i><input type="text" name="postal" id="postal-input" placeholder="Auto-filled" readonly value="<?= v('postal') ?>"></div>
-        </div>
       </div>
 
 
@@ -258,35 +222,12 @@ nav{background:#fff;border-bottom:1px solid var(--border);position:sticky;top:0;
 </div>
 
 <script>
-const barangayData = <?= json_encode($barangays, JSON_UNESCAPED_UNICODE) ?>;
-const zipcodes = {
-  'Manila':'1000','Quezon City':'1100','Makati':'1200','Pasig':'1600','Taguig':'1630',
-  'Mandaluyong':'1550','Marikina':'1800','Pasay':'1300','Paranaque':'1700','Las Pinas':'1740',
-  'Muntinlupa':'1770','Caloocan':'1400','Malabon':'1470','Navotas':'1485','Valenzuela':'1440',
-  'Cebu City':'6000','Lapu-Lapu':'6015','Mandaue':'6014'
-};
-const savedCity = <?= json_encode(v('city')) ?>;
-const savedBarangay = <?= json_encode(v('barangay')) ?>;
-
-
-function updateBarangays() {
-  const city = document.getElementById('city-select').value;
-  const sel  = document.getElementById('barangay-select');
-  const list = barangayData[city] || barangayData['default'];
-  sel.innerHTML = '<option value="">Select barangay</option>' +
-    list.map(b => `<option value="${b}"${b===savedBarangay?' selected':''}>${b}</option>`).join('');
-  document.getElementById('postal-input').value = zipcodes[city] || '';
-}
-
 function togglePw(id, btn) {
   const inp = document.getElementById(id);
   const isText = inp.type === 'text';
   inp.type = isText ? 'password' : 'text';
   btn.querySelector('i').className = isText ? 'fas fa-eye' : 'fas fa-eye-slash';
 }
-
-// Init barangays if city was pre-selected (form re-submit)
-if (savedCity) { document.getElementById('city-select').value = savedCity; updateBarangays(); }
 
 // Client-side password match check
 document.getElementById('reg-form') && document.getElementById('reg-form').addEventListener('submit', function(e) {

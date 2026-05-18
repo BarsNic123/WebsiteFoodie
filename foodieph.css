@@ -63,12 +63,16 @@ nav {
   background: none; border: 1.5px solid var(--border);
   color: var(--text); font-family: var(--font); font-size: 13px; font-weight: 600;
   padding: 8px 16px; border-radius: 100px; cursor: pointer; transition: all 0.18s;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  white-space: nowrap; text-decoration: none;
 }
 .btn-ghost:hover { border-color: var(--brand); color: var(--brand); }
 .btn-primary {
   background: var(--brand); border: none; color: #fff;
   font-family: var(--font); font-size: 13px; font-weight: 700;
   padding: 8px 18px; border-radius: 100px; cursor: pointer; transition: all 0.18s;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  white-space: nowrap; text-decoration: none;
 }
 .btn-primary:hover { background: var(--brand-dark); }
 .cart-btn {
@@ -76,6 +80,7 @@ nav {
   font-family: var(--font); font-size: 14px; font-weight: 700;
   padding: 9px 20px 9px 16px; border-radius: 100px; cursor: pointer;
   display: flex; align-items: center; gap: 8px; transition: background 0.18s;
+  white-space: nowrap;
 }
 .cart-btn:hover { background: var(--brand-dark); }
 .cart-badge {
