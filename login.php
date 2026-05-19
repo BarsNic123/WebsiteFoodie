@@ -94,7 +94,7 @@ nav{background:#fff;border-bottom:1px solid var(--border);box-shadow:0 2px 12px 
 </style>
 </head>
 <body>
-<div class="topbar">?? Globe: <strong>09177135477</strong> &nbsp;|&nbsp; Fast. Fresh. Nationwide Delivery &nbsp;|&nbsp; <a href="foodieph.html">Back to Foodie.PH</a></div>
+<div class="topbar"><i class="fas fa-phone"></i> Globe: <strong>09177135477</strong> &nbsp;|&nbsp; Fast. Fresh. Nationwide Delivery &nbsp;|&nbsp; <a href="foodieph.html">Back to Foodie.PH</a></div>
 <nav><div class="nav-inner">
   <a href="foodieph.html" class="logo">Foodie<span>.PH</span></a>
   <a href="foodieph.html" class="nav-back"><i class="fas fa-arrow-left"></i> Back to Home</a>

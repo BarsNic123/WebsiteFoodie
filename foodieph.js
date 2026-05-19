@@ -119,6 +119,11 @@ function saveCart() {
 }
 
 function addToCart(itemId) {
+  if (typeof window.IS_LOGGED_IN !== 'undefined' && !window.IS_LOGGED_IN) {
+    alert("You must be logged in to order or add items to your cart.");
+    window.location.href = 'login.php';
+    return;
+  }
   const item = currentRestaurant.menu.find(m => m.id === itemId);
   if (!item) return;
   if (cart.length && cart[0].restaurantId !== currentRestaurant.id) {
@@ -224,6 +229,11 @@ document.getElementById('promo-new-arrivals')?.addEventListener('keydown', e => 
 });
 
 document.getElementById('checkout-btn').addEventListener('click', () => {
+  if (typeof window.IS_LOGGED_IN !== 'undefined' && !window.IS_LOGGED_IN) {
+    alert("You must be logged in to proceed to checkout.");
+    window.location.href = 'login.php';
+    return;
+  }
   if (!cart.length) { toast('Your cart is empty!'); return; }
   saveCart();
   window.location.href = 'checkout.php';
