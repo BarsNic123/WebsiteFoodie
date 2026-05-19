@@ -171,19 +171,14 @@ try {
 $categories = [];
 $restaurants = [];
 $menuItems = [];
-<<<<<<< HEAD
 $ridersList = [];
-=======
 $orders = [];
->>>>>>> ab3b258cd789bd39c7e99abe6be0d60099908d2d
 if (empty($errors)) {
     $pdo = db();
     $categories = $pdo->query('SELECT id, name, icon, filter_key FROM categories ORDER BY id')->fetchAll();
     $restaurants = $pdo->query('SELECT id, name, image, rating, delivery_time, delivery_fee, cuisines_json, tag, tag_style, category, is_open FROM restaurants ORDER BY id')->fetchAll();
     $menuItems = $pdo->query('SELECT id, restaurant_id, name, description, price FROM menu_items ORDER BY id')->fetchAll();
-<<<<<<< HEAD
-    $ridersList = $pdo->query('SELECT u.id as user_id, u.first_name, u.middle_name, u.last_name, u.email, u.phone, r.id as rider_id, r.driver_license, r.vehicle_type, r.vehicle_plate, r.license_image_url, r.other_documents_url, r.preferred_city, r.created_at FROM users u JOIN riders r ON u.id = r.user_id ORDER BY r.created_at DESC')->fetchAll();
-=======
+    $ridersList = $pdo->query('SELECT u.id as user_id, u.name, u.email, u.phone, r.id as rider_id, r.driver_license, r.vehicle_type, r.vehicle_plate, r.preferred_city, r.license_front_url, r.license_back_url, r.created_at FROM users u JOIN riders r ON u.id = r.user_id ORDER BY r.created_at DESC')->fetchAll();
     $orders = $pdo->query(
         'SELECT o.id, o.full_name, o.contact_number, o.delivery_address, o.payment_method,
                 o.subtotal, o.delivery_fee, o.total_amount, o.status, o.created_at,
@@ -193,12 +188,13 @@ if (empty($errors)) {
          ORDER BY o.id DESC
          LIMIT 100'
     )->fetchAll();
+    
+    $applications = $pdo->query('SELECT id, restaurant_name, cuisine_type, owner_name, owner_email, owner_phone, city, status, created_at, legitimacy_doc_url FROM restaurant_applications ORDER BY created_at DESC')->fetchAll();
 }
 
 function formatPeso(int $amount): string
 {
     return '₱' . number_format($amount, 2);
->>>>>>> ab3b258cd789bd39c7e99abe6be0d60099908d2d
 }
 ?>
 <!doctype html>
@@ -463,10 +459,10 @@ function formatPeso(int $amount): string
             <tr><th>User ID</th><th>Name</th><th>Email / Phone</th><th>Vehicle</th><th>Plate</th><th>License / Docs</th><th>City</th><th>Applied On</th></tr>
           </thead>
           <tbody>
-          <?php foreach ($ridersList as $rider): ?>
+                    <?php foreach ($ridersList as $rider): ?>
             <tr>
               <td><?= (int) $rider['user_id'] ?></td>
-              <td><?= h(trim($rider['first_name'] . ' ' . $rider['middle_name'] . ' ' . $rider['last_name'])) ?></td>
+              <td><?= h($rider['name']) ?></td>
               <td>
                 <?= h($rider['email']) ?><br>
                 <span class="tiny"><?= h($rider['phone']) ?></span>
@@ -474,13 +470,12 @@ function formatPeso(int $amount): string
               <td><?= h($rider['vehicle_type']) ?></td>
               <td><?= h($rider['vehicle_plate']) ?></td>
               <td>
-                <?php if ($rider['license_image_url']): ?>
-                  <a href="<?= h($rider['license_image_url']) ?>" target="_blank">License</a><br>
-                <?php else: ?>
-                  <span class="tiny">No License</span><br>
+                <?= h($rider['driver_license'] ? 'License: ' . $rider['driver_license'] : 'No License') ?><br>
+                <?php if (!empty($rider['license_front_url'])): ?>
+                   <a href="<?= h($rider['license_front_url']) ?>" target="_blank" style="color:var(--accent)" class="tiny"><i class="fas fa-image"></i> Front</a>
                 <?php endif; ?>
-                <?php if ($rider['other_documents_url']): ?>
-                  <a href="<?= h($rider['other_documents_url']) ?>" target="_blank">Other Docs</a>
+                <?php if (!empty($rider['license_back_url'])): ?>
+                   <span class="tiny" style="color:var(--muted)">|</span> <a href="<?= h($rider['license_back_url']) ?>" target="_blank" style="color:var(--accent)" class="tiny"><i class="fas fa-image"></i> Back</a>
                 <?php endif; ?>
               </td>
               <td><?= h($rider['preferred_city']) ?></td>
@@ -493,6 +488,66 @@ function formatPeso(int $amount): string
           </tbody>
         </table>
       </div>
+
+      <!-- PARTNER APPLICATIONS SECTION -->
+      <div class="card">
+        <h2 class="title">Partner Applications</h2>
+        <p class="tiny">Restaurant registration requests submitted via the Partner With Us page.</p>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Restaurant Name</th>
+                <th>Owner</th>
+                <th>Contact</th>
+                <th>City</th>
+                <th>Status</th>
+                <th>Legitimacy Doc</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php foreach ($applications as $app): ?>
+                <tr>
+                  <td><?= (int) $app['id'] ?></td>
+                  <td>
+                    <strong><?= h($app['restaurant_name']) ?></strong><br>
+                    <span class="tiny"><?= h($app['cuisine_type']) ?></span>
+                  </td>
+                  <td><?= h($app['owner_name']) ?></td>
+                  <td>
+                    <?= h($app['owner_email']) ?><br>
+                    <span class="tiny"><?= h($app['owner_phone']) ?></span>
+                  </td>
+                  <td><?= h($app['city']) ?></td>
+                  <td>
+                    <?php
+                       $sColor = '#9ca3af';
+                       if ($app['status'] === 'approved') $sColor = '#16a34a';
+                       else if ($app['status'] === 'rejected') $sColor = '#dc2626';
+                       else if ($app['status'] === 'under_review') $sColor = '#f59e0b';
+                    ?>
+                    <strong style="color:<?= $sColor ?>"><?= ucfirst(h($app['status'])) ?></strong>
+                  </td>
+                  <td>
+                    <?php if ($app['legitimacy_doc_url']): ?>
+                      <a href="<?= h($app['legitimacy_doc_url']) ?>" target="_blank" style="color:var(--accent)"><i class="fas fa-file-invoice"></i> View Doc</a>
+                    <?php else: ?>
+                      <span class="tiny" style="color:var(--muted)">No Document</span>
+                    <?php endif; ?>
+                  </td>
+                  <td><span class="tiny"><?= h($app['created_at']) ?></span></td>
+                </tr>
+              <?php endforeach; ?>
+              <?php if (empty($applications)): ?>
+                <tr><td colspan="8" style="text-align:center;color:var(--muted);padding:16px;">No applications found.</td></tr>
+              <?php endif; ?>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      
     <?php endif; ?>
   </div>
 </body>

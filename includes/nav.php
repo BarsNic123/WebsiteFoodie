@@ -33,11 +33,13 @@ function buildNavSessionHtml(?array $user, string $page): string
     if ($user === null) {
         $login = '<a href="login.php" class="btn-ghost" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center;"><i class="fa fa-user" style="margin-right:6px;font-size:12px"></i>Login</a>';
         $register = '<a href="register.php" class="btn-primary" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center;">Create Account</a>';
-        $html = $login . $register;
+        $rider = '<a href="register.php?role=rider" class="btn-ghost" style="background:#232323;color:white;border-radius:20px;padding:8px 18px;border:none;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;"><i class="fas fa-motorcycle" style="margin-right:6px;"></i>Ride with us</a>';
+        
+        $html = $rider . $login . $register;
         // Admin entry when logged out only (leads to login, then admin panel)
         if ($page === 'home') {
             $admin = '<a href="login.php?next=admin.php&admin=1" class="btn-ghost" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center;"><i class="fa fa-shield-halved" style="margin-right:6px;font-size:12px"></i>Admin</a>';
-            $html = $login . $admin . $register;
+            $html = $admin . $rider . $login . $register;
         }
         return $html;
     }

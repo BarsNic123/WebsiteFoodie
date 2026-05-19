@@ -30,11 +30,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($error==='' && $bir_form==='') $error='Please indicate if you have a BIR 2303 form.';
     if ($error==='' && $has_device==='') $error='Please indicate if you have an Android device.';
     if ($error==='' && !$agree) $error='You must agree to the Partner Terms and Conditions.';
-    if ($error==='') {
+    if ($error === '') {
+        $docUrl = '';
+        if (isset($_FILES['legitimacy_doc']) && $_FILES['legitimacy_doc']['error'] === UPLOAD_ERR_OK) {
+            $uploadDir = __DIR__ . '/uploads/documents/';
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0755, true);
+            }
+            $filename = uniqid('doc_') . '_' . basename($_FILES['legitimacy_doc']['name']);
+            $targetFile = $uploadDir . $filename;
+            if (move_uploaded_file($_FILES['legitimacy_doc']['tmp_name'], $targetFile)) {
+                $docUrl = 'uploads/documents/' . $filename;
+            } else {
+                $error = 'Failed to save the uploaded document.';
+            }
+        } else {
+            $error = 'Please upload a valid Document of Legitimacy.';
+        }
+    }
+
+    if ($error === '') {
         try {
             if (!empty($config['use_database'])) {
-                $stmt = db()->prepare("INSERT INTO restaurant_applications (restaurant_name,cuisine_type,description,owner_name,owner_email,owner_phone,business_address,city,delivery_zones,operating_hours,avg_delivery_time,delivery_fee,min_order,payment_methods,bir_tin,business_permit,social_media,how_heard,status) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'pending')");
-                $stmt->execute([$biz_name,$category,'',''.($owner_first.' '.$owner_last),$email,$phone,$address,$city,'Metro Manila',$operating_hours,'60-90 mins',(int)$delivery_fee,0,'Cash on Delivery',$bir_tin,$permit_no,'','']);
+                $stmt = db()->prepare("INSERT INTO restaurant_applications (restaurant_name,cuisine_type,description,owner_name,owner_email,owner_phone,business_address,city,delivery_zones,operating_hours,avg_delivery_time,delivery_fee,min_order,payment_methods,bir_tin,business_permit,social_media,how_heard,status,legitimacy_doc_url) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'pending',?)");
+                $stmt->execute([$biz_name,$category,'',''.($owner_first.' '.$owner_last),$email,$phone,$address,$city,'Metro Manila',$operating_hours,'60-90 mins',(int)$delivery_fee,0,'Cash on Delivery',$bir_tin,$permit_no,'','',$docUrl]);
             }
             $success = 'Thank you, '.$owner_first.'! Your application for <strong>'.htmlspecialchars($biz_name,ENT_QUOTES,'UTF-8').'</strong> has been submitted. Our team will contact you within 2-3 business days.';
         } catch (Throwable $e) {
@@ -108,7 +127,7 @@ nav{background:#fff;border-bottom:1px solid var(--border);box-shadow:0 2px 12px 
 </style>
 </head>
 <body>
-<div class="topbar">?? Globe: <strong>09177135477</strong> &nbsp;|&nbsp; Fast. Fresh. Nationwide Delivery &nbsp;|&nbsp; <a href="foodieph.html">Back to Foodie.PH</a></div>
+<div class="topbar"><i class="fas fa-phone"></i> Globe: <strong>09177135477</strong> &nbsp;|&nbsp; Fast. Fresh. Nationwide Delivery &nbsp;|&nbsp; <a href="foodieph.html">Back to Foodie.PH</a></div>
 <nav><div class="nav-inner">
   <a href="foodieph.html" class="logo">Foodie<span>.PH</span></a>
   <a href="foodieph.html" class="nav-back"><i class="fas fa-arrow-left"></i> Back to Home</a>
@@ -119,10 +138,10 @@ nav{background:#fff;border-bottom:1px solid var(--border);box-shadow:0 2px 12px 
     <h1>Register your restaurant<br>with <em>Foodie.PH!</em></h1>
     <p>Sign up easily, showcase your menu, and start reaching thousands of new customers across the Philippines.</p>
     <div class="perks">
-      <div class="perk"><div class="perk-icon">??</div><span>Go live in as fast as 48 hours</span></div>
-      <div class="perk"><div class="perk-icon">??</div><span>Reach more customers nationwide</span></div>
-      <div class="perk"><div class="perk-icon">??</div><span>Multiple payment options supported</span></div>
-      <div class="perk"><div class="perk-icon">???</div><span>We handle delivery logistics for you</span></div>
+      <div class="perk"><div class="perk-icon"><i class="fas fa-rocket"></i></div><span>Go live in as fast as 48 hours</span></div>
+      <div class="perk"><div class="perk-icon"><i class="fas fa-users"></i></div><span>Reach more customers nationwide</span></div>
+      <div class="perk"><div class="perk-icon"><i class="fas fa-credit-card"></i></div><span>Multiple payment options supported</span></div>
+      <div class="perk"><div class="perk-icon"><i class="fas fa-truck"></i></div><span>We handle delivery logistics for you</span></div>
     </div>
   </div>
   <!-- RIGHT FORM -->
@@ -135,7 +154,7 @@ nav{background:#fff;border-bottom:1px solid var(--border);box-shadow:0 2px 12px 
         <div class="alert alert-ok"><i class="fas fa-circle-check"></i> <?= $success ?></div>
         <div class="links" style="margin-top:20px"><a href="foodieph.html"><i class="fas fa-house"></i> Back to Home</a></div>
       <?php else: ?>
-      <form method="post">
+      <form method="post" enctype="multipart/form-data">
         <div class="section-label"><i class="fas fa-store"></i> Business Information</div>
         <div class="form-group"><label>Your Business Name *</label><input type="text" name="biz_name" placeholder="Your Business Name *" required value="<?= htmlspecialchars($_POST['biz_name'] ?? '', ENT_QUOTES, 'UTF-8') ?>"></div>
         <div class="form-row">
@@ -197,6 +216,10 @@ nav{background:#fff;border-bottom:1px solid var(--border);box-shadow:0 2px 12px 
         <div class="form-row">
           <div class="form-group"><label>BIR TIN *</label><input type="text" name="bir_tin" placeholder="XXX-XXX-XXX-XXX" required value="<?= htmlspecialchars($_POST['bir_tin'] ?? '', ENT_QUOTES, 'UTF-8') ?>"></div>
           <div class="form-group"><label>Business Permit No. *</label><input type="text" name="permit_no" placeholder="Permit Number" required value="<?= htmlspecialchars($_POST['permit_no'] ?? '', ENT_QUOTES, 'UTF-8') ?>"></div>
+        </div>
+        <div class="form-group">
+          <label>Upload Document of Legitimacy (BIR/Permit/ID) *</label>
+          <input type="file" name="legitimacy_doc" accept="image/*,application/pdf" required>
         </div>
         <div class="section-label"><i class="fas fa-handshake"></i> Preferences</div>
         <label class="check-row"><input type="checkbox" name="same_phone" checked><span>My Business Phone is the same as my Mobile Number</span></label>
