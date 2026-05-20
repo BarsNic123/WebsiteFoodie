@@ -40,8 +40,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($first === '' || $last === '') {
         $error = 'Please enter your first and last name.';
-    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $error = 'Please enter a valid email address.';
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL) || strpos($email, '@') === false || strpos($email, '.com') === false) {
+        $error = 'Please enter a valid email address (must contain @ and .com).';
     } elseif (strlen($password) < 6) {
         $error = 'Password must be at least 6 characters.';
     } elseif ($phone === '') {
@@ -208,10 +208,7 @@ nav{background:#fff;border-bottom:1px solid var(--border);box-shadow:0 2px 12px 
     <div class="section-label"><i class="fas fa-mobile-screen"></i> Phone Number</div>
     <div class="form-group">
       <label>*Phone Number <span style="color:var(--muted);font-weight:400;text-transform:none">(for delivery updates &amp; 2FA)</span></label>
-      <div class="phone-row">
-        <input type="text" value="+63" readonly style="background:#f5f5f5;color:var(--muted);text-align:center;font-weight:600">
-        <input type="tel" name="phone" placeholder="9XX XXX XXXX" required value="<?= val('phone') ?>">
-      </div>
+      <input type="tel" name="phone" placeholder="e.g. +63 9XX XXX XXXX or +1 555 XXX XXXX" required value="<?= val('phone') ?>">
       <p class="hint"><i class="fas fa-shield-halved" style="color:var(--brand)"></i> Used for Two-Factor Authentication and delivery status updates</p>
     </div>
 

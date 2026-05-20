@@ -89,6 +89,7 @@ function openModal(idOrType) {
   `;
   document.getElementById('menu-items').innerHTML = r.menu.map(item => `
     <div class="menu-row">
+      ${item.image ? `<img src="${item.image}" class="menu-row-img" alt="${item.name}">` : ''}
       <div class="menu-row-info">
         <h4>${item.name}</h4>
         <p>${item.description}</p>

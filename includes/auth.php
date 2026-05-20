@@ -176,6 +176,42 @@ function requireAdmin(): void
     }
 }
 
+function requireRider(): array
+{
+    $user = currentUser();
+    if ($user === null) {
+        $next = urlencode($_SERVER['REQUEST_URI'] ?? '/rider-dashboard.php');
+        header('Location: ' . appPath("login.php?next={$next}"));
+        exit;
+    }
+    if ($user['role'] !== 'rider') {
+        http_response_code(403);
+        echo 'Forbidden: rider access required.';
+        exit;
+    }
+    // Check if the rider is approved
+    $stmt = db()->prepare('SELECT id, status FROM riders WHERE user_id = ? LIMIT 1');
+    $stmt->execute([$user['id']]);
+    $riderRow = $stmt->fetch();
+    
+    if (!$riderRow) {
+        http_response_code(403);
+        echo 'Forbidden: rider profile not found.';
+        exit;
+    }
+    
+    if ($riderRow['status'] !== 'approved') {
+        http_response_code(403);
+        echo 'Forbidden: Your rider application is pending or has been rejected. Please contact support.';
+        exit;
+    }
+    
+    return [
+        'user' => $user,
+        'rider_id' => (int)$riderRow['id']
+    ];
+}
+
 function logoutUser(): void
 {
     ensureSession();

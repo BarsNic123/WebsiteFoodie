@@ -38,7 +38,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 exit;
             }
         } else {
-            header('Location: ' . $next);
+            $user = currentUser();
+            if (($user['role'] ?? '') === 'restaurant') {
+                header('Location: restaurant-dashboard.php');
+            } elseif (($user['role'] ?? '') === 'rider') {
+                header('Location: rider-dashboard.php');
+            } else {
+                header('Location: ' . $next);
+            }
             exit;
         }
     } catch (Throwable $e) {

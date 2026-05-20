@@ -88,7 +88,7 @@ function fetchFromDatabase(): array
     }
 
     $menuStmt = $pdo->query(
-        'SELECT id, restaurant_id, name, description, price FROM menu_items ORDER BY restaurant_id, id'
+        'SELECT id, restaurant_id, name, description, price, image_url FROM menu_items ORDER BY restaurant_id, id'
     );
     while ($m = $menuStmt->fetch()) {
         $rid = (int) $m['restaurant_id'];
@@ -100,6 +100,7 @@ function fetchFromDatabase(): array
             'name' => $m['name'],
             'description' => $m['description'],
             'price' => (int) $m['price'],
+            'image' => $m['image_url'] ?? '',
         ];
     }
 

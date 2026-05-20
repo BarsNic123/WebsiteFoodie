@@ -49,22 +49,29 @@ CREATE TABLE IF NOT EXISTS categories (
 --    Managed in admin.php. cuisines_json = ["Filipino","Grill"]
 -- ============================================================
 CREATE TABLE IF NOT EXISTS restaurants (
-  id            INT UNSIGNED    NOT NULL,
-  name          VARCHAR(200)    NOT NULL,
-  image         VARCHAR(600)    NOT NULL  COMMENT 'Cover photo URL',
-  rating        DECIMAL(2,1)    NOT NULL  DEFAULT 0.0,
-  delivery_time VARCHAR(20)     NOT NULL  COMMENT 'Display string, e.g. 45-60',
-  delivery_fee  INT UNSIGNED    NOT NULL  DEFAULT 0 COMMENT 'PHP pesos, e.g. 49 = ₱49',
-  cuisines_json JSON            NOT NULL  COMMENT 'JSON array of cuisine strings',
-  tag           VARCHAR(100)    NOT NULL  DEFAULT '' COMMENT 'Badge: Popular, New, etc.',
-  tag_style     VARCHAR(20)     NOT NULL  DEFAULT '' COMMENT 'CSS: green | gold | blue | empty=red',
-  category      VARCHAR(50)     NOT NULL  COMMENT 'Must match categories.filter_key',
-  is_open       TINYINT(1)      NOT NULL  DEFAULT 1 COMMENT '1=open, 0=closed',
-  created_at    TIMESTAMP       NOT NULL  DEFAULT CURRENT_TIMESTAMP,
-  updated_at    TIMESTAMP       NOT NULL  DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  id               INT UNSIGNED    NOT NULL AUTO_INCREMENT,
+  owner_user_id    INT UNSIGNED    NULL,
+  name             VARCHAR(200)    NOT NULL,
+  image            VARCHAR(600)    NOT NULL  COMMENT 'Cover photo URL',
+  rating           DECIMAL(2,1)    NOT NULL  DEFAULT 0.0,
+  delivery_time    VARCHAR(20)     NOT NULL  COMMENT 'Display string, e.g. 45-60',
+  delivery_fee     INT UNSIGNED    NOT NULL  DEFAULT 0 COMMENT 'PHP pesos, e.g. 49 = ₱49',
+  cuisines_json    JSON            NOT NULL  COMMENT 'JSON array of cuisine strings',
+  tag              VARCHAR(100)    NOT NULL  DEFAULT '' COMMENT 'Badge: Popular, New, etc.',
+  tag_style        VARCHAR(20)     NOT NULL  DEFAULT '' COMMENT 'CSS: green | gold | blue | empty=red',
+  category         VARCHAR(50)     NOT NULL  COMMENT 'Must match categories.filter_key',
+  business_address VARCHAR(300)    NOT NULL  DEFAULT '',
+  city             VARCHAR(100)    NOT NULL  DEFAULT '',
+  operating_hours  VARCHAR(100)    NOT NULL  DEFAULT '',
+  is_open          TINYINT(1)      NOT NULL  DEFAULT 1 COMMENT '1=open, 0=closed',
+  created_at       TIMESTAMP       NOT NULL  DEFAULT CURRENT_TIMESTAMP,
+  updated_at       TIMESTAMP       NOT NULL  DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   KEY idx_category (category),
-  KEY idx_is_open  (is_open)
+  KEY idx_is_open  (is_open),
+  CONSTRAINT fk_restaurant_owner
+    FOREIGN KEY (owner_user_id) REFERENCES users (id)
+    ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB
   DEFAULT CHARSET=utf8mb4
   COLLATE=utf8mb4_unicode_ci
@@ -74,10 +81,11 @@ CREATE TABLE IF NOT EXISTS restaurants (
 -- 3. MENU ITEMS
 -- ============================================================
 CREATE TABLE IF NOT EXISTS menu_items (
-  id            INT UNSIGNED  NOT NULL,
+  id            INT UNSIGNED  NOT NULL AUTO_INCREMENT,
   restaurant_id INT UNSIGNED  NOT NULL,
   name          VARCHAR(200)  NOT NULL,
   description   VARCHAR(600)  NOT NULL  DEFAULT '',
+  image_url     VARCHAR(255)  NOT NULL  DEFAULT '',
   price         INT UNSIGNED  NOT NULL  DEFAULT 0 COMMENT 'PHP pesos, e.g. 189 = ₱189',
   is_available  TINYINT(1)    NOT NULL  DEFAULT 1 COMMENT '1=available, 0=sold out',
   sort_order    INT           NOT NULL  DEFAULT 0 COMMENT 'Display order within restaurant',
@@ -111,15 +119,8 @@ CREATE TABLE IF NOT EXISTS users (
   postal_code          VARCHAR(20)   NOT NULL  DEFAULT '',
   country              VARCHAR(100)  NOT NULL  DEFAULT 'Philippines',
   password_hash        VARCHAR(255)  NOT NULL,
-<<<<<<< HEAD
-  role                 ENUM('admin','user','rider') NOT NULL DEFAULT 'user',
-  email_notifications  TINYINT(1)   NOT NULL  DEFAULT 1 COMMENT '1=opted in from register checkbox',
-  is_active            TINYINT(1)   NOT NULL  DEFAULT 1,
-  last_login_at        TIMESTAMP    NULL       DEFAULT NULL,
-  created_at           TIMESTAMP    NOT NULL  DEFAULT CURRENT_TIMESTAMP,
-=======
-  role                 ENUM('admin','user') NOT NULL DEFAULT 'user',
-  email_notifications  TINYINT(1)    NOT NULL  DEFAULT 1,
+  role                 ENUM('admin','user','rider','restaurant') NOT NULL DEFAULT 'user',
+  email_notifications  TINYINT(1)    NOT NULL  DEFAULT 1 COMMENT '1=opted in from register checkbox',
   job_title            VARCHAR(100)  NOT NULL  DEFAULT '' COMMENT 'Position / role title (staff & admin)',
   department           VARCHAR(100)  NOT NULL  DEFAULT '' COMMENT 'Team or department',
   staff_id             VARCHAR(50)   NOT NULL  DEFAULT '' COMMENT 'Internal staff or employee ID',
@@ -127,12 +128,12 @@ CREATE TABLE IF NOT EXISTS users (
   is_active            TINYINT(1)    NOT NULL  DEFAULT 1,
   last_login_at        TIMESTAMP     NULL      DEFAULT NULL,
   created_at           TIMESTAMP     NOT NULL  DEFAULT CURRENT_TIMESTAMP,
->>>>>>> ab3b258cd789bd39c7e99abe6be0d60099908d2d
   PRIMARY KEY (id),
   UNIQUE KEY uq_email (email),
   KEY idx_role (role)
 ) ENGINE=InnoDB
-<<<<<<< HEAD
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_unicode_ci
   COMMENT='Customer, rider, and admin user accounts';
 
 CREATE TABLE IF NOT EXISTS riders (
@@ -141,9 +142,10 @@ CREATE TABLE IF NOT EXISTS riders (
   driver_license VARCHAR(100)  NOT NULL DEFAULT '' COMMENT 'Driver license or permit number',
   vehicle_type   VARCHAR(100)  NOT NULL DEFAULT '' COMMENT 'Motorcycle, tricycle, bicycle, etc.',
   vehicle_plate  VARCHAR(50)   NOT NULL DEFAULT '' COMMENT 'Vehicle plate number',
-  license_image_url VARCHAR(255) NOT NULL DEFAULT '' COMMENT 'Path to driver license image',
-  other_documents_url VARCHAR(255) NOT NULL DEFAULT '' COMMENT 'Path to other documents',
+  license_front_url VARCHAR(255) NOT NULL DEFAULT '' COMMENT 'Path to driver license front image',
+  license_back_url VARCHAR(255) NOT NULL DEFAULT '' COMMENT 'Path to driver license back image',
   preferred_city VARCHAR(100)  NOT NULL DEFAULT '' COMMENT 'Primary delivery city',
+  status         ENUM('pending','approved','rejected') NOT NULL DEFAULT 'pending',
   created_at     TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   UNIQUE KEY uq_rider_user (user_id),
@@ -152,11 +154,6 @@ CREATE TABLE IF NOT EXISTS riders (
     ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB
   COMMENT='Delivery rider profiles for registered riders';
-=======
-  DEFAULT CHARSET=utf8mb4
-  COLLATE=utf8mb4_unicode_ci
-  COMMENT='Customer and admin accounts';
->>>>>>> ab3b258cd789bd39c7e99abe6be0d60099908d2d
 
 -- ============================================================
 -- 5. ORDERS
@@ -167,6 +164,7 @@ CREATE TABLE IF NOT EXISTS orders (
   id                 INT UNSIGNED  NOT NULL AUTO_INCREMENT,
   user_id            INT UNSIGNED  NULL      DEFAULT NULL COMMENT 'NULL = guest',
   restaurant_id      INT UNSIGNED  NOT NULL,
+  rider_id           INT UNSIGNED  NULL      DEFAULT NULL COMMENT 'NULL = unassigned',
   full_name          VARCHAR(160)  NOT NULL,
   contact_number     VARCHAR(20)   NOT NULL,
   delivery_address   TEXT          NOT NULL,
@@ -192,8 +190,12 @@ CREATE TABLE IF NOT EXISTS orders (
   KEY idx_restaurant (restaurant_id),
   KEY idx_status     (status),
   KEY idx_created    (created_at),
+  KEY idx_rider      (rider_id),
   CONSTRAINT fk_order_user
     FOREIGN KEY (user_id) REFERENCES users (id)
+    ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT fk_order_rider
+    FOREIGN KEY (rider_id) REFERENCES riders (id)
     ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT fk_order_restaurant
     FOREIGN KEY (restaurant_id) REFERENCES restaurants (id)
@@ -217,6 +219,7 @@ CREATE TABLE IF NOT EXISTS restaurant_applications (
   owner_name        VARCHAR(200)  NOT NULL,
   owner_email       VARCHAR(190)  NOT NULL,
   owner_phone       VARCHAR(30)   NOT NULL,
+  password_hash     VARCHAR(255)  NOT NULL DEFAULT '',
   business_address  TEXT          NOT NULL,
   city              VARCHAR(100)  NOT NULL,
   delivery_zones    VARCHAR(200)  NOT NULL  DEFAULT '',
@@ -229,6 +232,7 @@ CREATE TABLE IF NOT EXISTS restaurant_applications (
   same_phone        TINYINT(1)    NOT NULL  DEFAULT 1,
   bir_tin           VARCHAR(50)   NOT NULL  DEFAULT '',
   business_permit   VARCHAR(100)  NOT NULL  DEFAULT '',
+  legitimacy_doc_url VARCHAR(255) DEFAULT NULL COMMENT 'Path to uploaded business permit or legitimacy document',
   has_bir_form      TINYINT(1)    NULL      DEFAULT NULL,
   has_android       TINYINT(1)    NULL      DEFAULT NULL,
   social_media      VARCHAR(300)  NOT NULL  DEFAULT '',

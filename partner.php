@@ -24,9 +24,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $agree      = isset($_POST['agree']);
     $same_phone = isset($_POST['same_phone']);
     $updates    = isset($_POST['updates']);
-    $required = ['Business Name'=>$biz_name,'Owner First Name'=>$owner_first,'Owner Last Name'=>$owner_last,'Business Category'=>$category,'Business Email'=>$email,'Phone Number'=>$phone,'Business Address'=>$address,'City'=>$city,'BIR TIN'=>$bir_tin,'Business Permit No.'=>$permit_no,'Delivery Fee'=>$delivery_fee,'Operating Hours'=>$operating_hours];
+    
+    $password   = trim((string)($_POST['password'] ?? ''));
+    $confirm    = trim((string)($_POST['confirm_password'] ?? ''));
+
+    $required = ['Business Name'=>$biz_name,'Owner First Name'=>$owner_first,'Owner Last Name'=>$owner_last,'Business Category'=>$category,'Business Email'=>$email,'Phone Number'=>$phone,'Business Address'=>$address,'City'=>$city,'BIR TIN'=>$bir_tin,'Business Permit No.'=>$permit_no,'Delivery Fee'=>$delivery_fee,'Operating Hours'=>$operating_hours,'Password'=>$password];
     foreach ($required as $lbl => $val) { if ($val==='') { $error="Please fill in: $lbl"; break; } }
     if ($error==='' && !filter_var($email,FILTER_VALIDATE_EMAIL)) $error='Please enter a valid business email.';
+    if ($error==='' && strlen($password) < 6) $error='Password must be at least 6 characters.';
+    if ($error==='' && $password !== $confirm) $error='Passwords do not match.';
     if ($error==='' && $bir_form==='') $error='Please indicate if you have a BIR 2303 form.';
     if ($error==='' && $has_device==='') $error='Please indicate if you have an Android device.';
     if ($error==='' && !$agree) $error='You must agree to the Partner Terms and Conditions.';
@@ -52,8 +58,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($error === '') {
         try {
             if (!empty($config['use_database'])) {
-                $stmt = db()->prepare("INSERT INTO restaurant_applications (restaurant_name,cuisine_type,description,owner_name,owner_email,owner_phone,business_address,city,delivery_zones,operating_hours,avg_delivery_time,delivery_fee,min_order,payment_methods,bir_tin,business_permit,social_media,how_heard,status,legitimacy_doc_url) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'pending',?)");
-                $stmt->execute([$biz_name,$category,'',''.($owner_first.' '.$owner_last),$email,$phone,$address,$city,'Metro Manila',$operating_hours,'60-90 mins',(int)$delivery_fee,0,'Cash on Delivery',$bir_tin,$permit_no,'','',$docUrl]);
+                $hash = password_hash($password, PASSWORD_DEFAULT);
+                $stmt = db()->prepare("INSERT INTO restaurant_applications (restaurant_name,cuisine_type,description,owner_name,owner_email,owner_phone,business_address,city,delivery_zones,operating_hours,avg_delivery_time,delivery_fee,min_order,payment_methods,bir_tin,business_permit,social_media,how_heard,status,legitimacy_doc_url,password_hash) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'pending',?,?)");
+                $stmt->execute([$biz_name,$category,'',''.($owner_first.' '.$owner_last),$email,$phone,$address,$city,'Metro Manila',$operating_hours,'60-90 mins',(int)$delivery_fee,0,'Cash on Delivery',$bir_tin,$permit_no,'','',$docUrl,$hash]);
             }
             $success = 'Thank you, '.$owner_first.'! Your application for <strong>'.htmlspecialchars($biz_name,ENT_QUOTES,'UTF-8').'</strong> has been submitted. Our team will contact you within 2-3 business days.';
         } catch (Throwable $e) {
@@ -197,6 +204,11 @@ nav{background:#fff;border-bottom:1px solid var(--border);box-shadow:0 2px 12px 
             <input type="text" value="+63" readonly style="background:#f5f5f5;color:var(--muted);text-align:center">
             <input type="tel" name="phone" placeholder="9XX XXX XXXX" required value="<?= htmlspecialchars($_POST['phone'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
           </div>
+        </div>
+        <div class="section-label"><i class="fas fa-lock"></i> Account Security</div>
+        <div class="form-row">
+          <div class="form-group"><label>Create Password *</label><input type="password" name="password" placeholder="Min. 6 characters" required></div>
+          <div class="form-group"><label>Confirm Password *</label><input type="password" name="confirm_password" placeholder="Confirm your password" required></div>
         </div>
         <div class="section-label"><i class="fas fa-location-dot"></i> Location & Operations</div>
         <div class="form-group"><label>Business Address *</label><input type="text" name="address" placeholder="Street / Building / Barangay" required value="<?= htmlspecialchars($_POST['address'] ?? '', ENT_QUOTES, 'UTF-8') ?>"></div>

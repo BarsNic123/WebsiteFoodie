@@ -213,13 +213,62 @@
         <h3><i class="fas fa-credit-card" style="margin-right: 8px;"></i>Payment Method</h3>
         <div class="form-group">
           <label for="payment-method">Payment Method *</label>
-          <select id="payment-method" name="payment_method" required>
+          <select id="payment-method" name="payment_method" required onchange="togglePaymentFields()">
             <option value="">Select payment method</option>
             <option value="cash">Cash on Delivery</option>
             <option value="gcash">GCash</option>
             <option value="maya">Maya</option>
             <option value="card">Credit/Debit Card</option>
           </select>
+        </div>
+
+        <div id="gcash-fields" style="display: none; margin-top: 15px; padding: 20px; background: #f9fafb; border-radius: 8px; border: 1px solid #0056e0; text-align: center;">
+          <h4 style="margin-bottom: 10px; color: #0056e0; font-weight: 700;">Scan to Pay with GCash</h4>
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=GCash_09177135477" alt="GCash QR Code" style="width: 150px; height: 150px; margin: 0 auto 10px; border: 2px solid #0056e0; border-radius: 8px; padding: 5px; background: #fff; display: block;">
+          <p style="font-size: 16px; font-weight: 600; margin-bottom: 15px; color: var(--dark);">GCash No: 0917 713 5477</p>
+          <div class="form-group" style="margin-bottom: 15px; text-align: left;">
+            <label for="gcash-sender">Sender Phone Number *</label>
+            <input type="text" id="gcash-sender" name="gcash_sender" placeholder="09XX XXX XXXX">
+          </div>
+          <div class="form-group" style="margin-bottom: 0; text-align: left;">
+            <label for="gcash-credential">Reference Number *</label>
+            <input type="text" id="gcash-credential" name="gcash_credential" placeholder="Enter 13-digit reference number">
+          </div>
+        </div>
+
+        <div id="maya-fields" style="display: none; margin-top: 15px; padding: 20px; background: #f9fafb; border-radius: 8px; border: 1px solid #00c25a; text-align: center;">
+          <h4 style="margin-bottom: 10px; color: #00c25a; font-weight: 700;">Scan to Pay with Maya</h4>
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=Maya_09177135477" alt="Maya QR Code" style="width: 150px; height: 150px; margin: 0 auto 10px; border: 2px solid #00c25a; border-radius: 8px; padding: 5px; background: #fff; display: block;">
+          <p style="font-size: 16px; font-weight: 600; margin-bottom: 15px; color: var(--dark);">Maya No: 0917 713 5477</p>
+          <div class="form-group" style="margin-bottom: 15px; text-align: left;">
+            <label for="maya-sender">Sender Phone Number *</label>
+            <input type="text" id="maya-sender" name="maya_sender" placeholder="09XX XXX XXXX">
+          </div>
+          <div class="form-group" style="margin-bottom: 0; text-align: left;">
+            <label for="maya-credential">Reference Number *</label>
+            <input type="text" id="maya-credential" name="maya_credential" placeholder="Enter 13-digit reference number">
+          </div>
+        </div>
+
+        <div id="card-fields" style="display: none; margin-top: 15px; padding: 15px; background: #f9fafb; border-radius: 8px; border: 1px solid #e5e7eb;">
+          <div class="form-group">
+            <label for="card-name">Name on Card *</label>
+            <input type="text" id="card-name" name="card_name" placeholder="Name as it appears on card">
+          </div>
+          <div class="form-group">
+            <label for="card-number">Card Number (11 digits) *</label>
+            <input type="text" id="card-number" name="card_number" placeholder="XXXX XXXX XXX" maxlength="11" pattern="\d{11}" title="Please enter exactly 11 digits">
+          </div>
+          <div class="form-row">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label for="card-expiry">Expiration Date *</label>
+              <input type="text" id="card-expiry" name="card_expiry" placeholder="MM/YY">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label for="card-ccv">CCV *</label>
+              <input type="text" id="card-ccv" name="card_ccv" placeholder="123" maxlength="4" pattern="\d{3,4}" title="3 or 4 digit CCV">
+            </div>
+          </div>
         </div>
       </div>
 
@@ -401,13 +450,25 @@ document.getElementById('checkout-form').addEventListener('submit', async (e) =>
   e.preventDefault();
   
   const formData = new FormData(e.target);
+  
+  let orderNotes = formData.get('order_notes') || '';
+  const method = formData.get('payment_method');
+  
+  if (method === 'gcash') {
+    orderNotes += `\n[Payment: GCash - Sender: ${formData.get('gcash_sender')}, Ref: ${formData.get('gcash_credential')}]`;
+  } else if (method === 'maya') {
+    orderNotes += `\n[Payment: Maya - Sender: ${formData.get('maya_sender')}, Ref: ${formData.get('maya_credential')}]`;
+  } else if (method === 'card') {
+    orderNotes += `\n[Payment: Card - Name: ${formData.get('card_name')}, No: ${formData.get('card_number')}, Exp: ${formData.get('card_expiry')}, CCV: ${formData.get('card_ccv')}]`;
+  }
+
   const orderData = {
     full_name: formData.get('full_name'),
     contact_number: formData.get('contact_number'),
     delivery_address: formData.get('delivery_address'),
     delivery_notes: formData.get('delivery_notes'),
-    payment_method: formData.get('payment_method'),
-    order_notes: formData.get('order_notes'),
+    payment_method: method,
+    order_notes: orderNotes.trim(),
     cart: cart,
     restaurant_id: restaurantId
   };
@@ -467,6 +528,28 @@ function showToast(message) {
   setTimeout(() => {
     toast.classList.remove('active');
   }, 3000);
+}
+
+// Toggle Payment Fields
+function togglePaymentFields() {
+  const method = document.getElementById('payment-method').value;
+  
+  const gcashFields = document.getElementById('gcash-fields');
+  const mayaFields = document.getElementById('maya-fields');
+  const cardFields = document.getElementById('card-fields');
+  
+  gcashFields.style.display = method === 'gcash' ? 'block' : 'none';
+  mayaFields.style.display = method === 'maya' ? 'block' : 'none';
+  cardFields.style.display = method === 'card' ? 'block' : 'none';
+  
+  document.getElementById('gcash-sender').required = method === 'gcash';
+  document.getElementById('gcash-credential').required = method === 'gcash';
+  document.getElementById('maya-sender').required = method === 'maya';
+  document.getElementById('maya-credential').required = method === 'maya';
+  document.getElementById('card-name').required = method === 'card';
+  document.getElementById('card-number').required = method === 'card';
+  document.getElementById('card-expiry').required = method === 'card';
+  document.getElementById('card-ccv').required = method === 'card';
 }
 
 // Initialize page

@@ -162,6 +162,79 @@ try {
             );
             $hist->execute([$orderId, $oldStatus, $newStatus, (int) ($authUser['id'] ?? 0), 'Updated in admin']);
             $success = "Order #{$orderId} marked as {$newStatus}.";
+        } elseif ($action === 'update_rider_status') {
+            $riderId = (int) ($_POST['rider_id'] ?? 0);
+            $newStatus = trim((string) ($_POST['status'] ?? ''));
+            if (!in_array($newStatus, ['approved', 'rejected', 'pending'], true)) {
+                throw new RuntimeException('Invalid rider status.');
+            }
+            $stmt = $pdo->prepare('UPDATE riders SET status = ? WHERE id = ?');
+            $stmt->execute([$newStatus, $riderId]);
+            $success = "Rider #{$riderId} status updated to {$newStatus}.";
+        } elseif ($action === 'update_application_status') {
+            $appId = (int) ($_POST['application_id'] ?? 0);
+            $newStatus = trim((string) ($_POST['status'] ?? ''));
+            if (!in_array($newStatus, ['approved', 'rejected', 'pending', 'under_review'], true)) {
+                throw new RuntimeException('Invalid application status.');
+            }
+            
+            if ($newStatus === 'approved') {
+                $appStmt = $pdo->prepare('SELECT * FROM restaurant_applications WHERE id = ?');
+                $appStmt->execute([$appId]);
+                $app = $appStmt->fetch(PDO::FETCH_ASSOC);
+                
+                if ($app && $app['status'] !== 'approved') {
+                    $pdo->beginTransaction();
+                    try {
+                        // 1. Create User
+                        $userStmt = $pdo->prepare('INSERT INTO users (name, first_name, last_name, email, phone, password_hash, role, street_address, city, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)');
+                        $userStmt->execute([
+                            $app['owner_name'],
+                            $app['owner_first_name'],
+                            $app['owner_last_name'],
+                            $app['owner_email'],
+                            $app['owner_phone'],
+                            $app['password_hash'],
+                            'restaurant',
+                            $app['business_address'],
+                            $app['city']
+                        ]);
+                        $userId = $pdo->lastInsertId();
+                        
+                        // 2. Create Restaurant
+                        $restStmt = $pdo->prepare('INSERT INTO restaurants (owner_user_id, name, category, business_address, city, operating_hours, delivery_time, delivery_fee, cuisines_json, is_open) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)');
+                        $restStmt->execute([
+                            $userId,
+                            $app['restaurant_name'],
+                            $app['cuisine_type'],
+                            $app['business_address'],
+                            $app['city'],
+                            $app['operating_hours'],
+                            $app['avg_delivery_time'],
+                            $app['delivery_fee'],
+                            json_encode([$app['cuisine_type']])
+                        ]);
+                        
+                        // 3. Update application status
+                        $updStmt = $pdo->prepare('UPDATE restaurant_applications SET status = ? WHERE id = ?');
+                        $updStmt->execute([$newStatus, $appId]);
+                        
+                        $pdo->commit();
+                        $success = "Application #{$appId} approved! User and Restaurant accounts generated.";
+                    } catch (Exception $e) {
+                        $pdo->rollBack();
+                        throw new RuntimeException('Failed to provision restaurant: ' . $e->getMessage());
+                    }
+                } else {
+                    $stmt = $pdo->prepare('UPDATE restaurant_applications SET status = ? WHERE id = ?');
+                    $stmt->execute([$newStatus, $appId]);
+                    $success = "Application #{$appId} status updated.";
+                }
+            } else {
+                $stmt = $pdo->prepare('UPDATE restaurant_applications SET status = ? WHERE id = ?');
+                $stmt->execute([$newStatus, $appId]);
+                $success = "Application #{$appId} status updated to {$newStatus}.";
+            }
         }
     }
 } catch (Throwable $e) {
@@ -178,7 +251,7 @@ if (empty($errors)) {
     $categories = $pdo->query('SELECT id, name, icon, filter_key FROM categories ORDER BY id')->fetchAll();
     $restaurants = $pdo->query('SELECT id, name, image, rating, delivery_time, delivery_fee, cuisines_json, tag, tag_style, category, is_open FROM restaurants ORDER BY id')->fetchAll();
     $menuItems = $pdo->query('SELECT id, restaurant_id, name, description, price FROM menu_items ORDER BY id')->fetchAll();
-    $ridersList = $pdo->query('SELECT u.id as user_id, u.name, u.email, u.phone, r.id as rider_id, r.driver_license, r.vehicle_type, r.vehicle_plate, r.preferred_city, r.license_front_url, r.license_back_url, r.created_at FROM users u JOIN riders r ON u.id = r.user_id ORDER BY r.created_at DESC')->fetchAll();
+    $ridersList = $pdo->query('SELECT u.id as user_id, u.name, u.email, u.phone, r.id as rider_id, r.driver_license, r.vehicle_type, r.vehicle_plate, r.preferred_city, r.license_front_url, r.license_back_url, r.status, r.created_at FROM users u JOIN riders r ON u.id = r.user_id ORDER BY r.created_at DESC')->fetchAll();
     $orders = $pdo->query(
         'SELECT o.id, o.full_name, o.contact_number, o.delivery_address, o.payment_method,
                 o.subtotal, o.delivery_fee, o.total_amount, o.status, o.created_at,
@@ -456,7 +529,7 @@ function formatPeso(int $amount): string
         <h2 class="title">Registered Riders</h2>
         <table>
           <thead>
-            <tr><th>User ID</th><th>Name</th><th>Email / Phone</th><th>Vehicle</th><th>Plate</th><th>License / Docs</th><th>City</th><th>Applied On</th></tr>
+            <tr><th>User ID</th><th>Name</th><th>Email / Phone</th><th>Vehicle</th><th>Plate</th><th>License / Docs</th><th>City</th><th>Status</th><th>Applied On</th></tr>
           </thead>
           <tbody>
                     <?php foreach ($ridersList as $rider): ?>
@@ -479,11 +552,35 @@ function formatPeso(int $amount): string
                 <?php endif; ?>
               </td>
               <td><?= h($rider['preferred_city']) ?></td>
+              <td>
+                <?php
+                   $rColor = '#9ca3af';
+                   if ($rider['status'] === 'approved') $rColor = '#16a34a';
+                   else if ($rider['status'] === 'rejected') $rColor = '#dc2626';
+                ?>
+                <strong style="color:<?= $rColor ?>"><?= ucfirst(h($rider['status'])) ?></strong><br>
+                <?php if ($rider['status'] === 'pending'): ?>
+                  <div style="display:flex;gap:4px;margin-top:4px;">
+                    <form method="post" style="display:inline">
+                      <input type="hidden" name="action" value="update_rider_status">
+                      <input type="hidden" name="rider_id" value="<?= (int) $rider['rider_id'] ?>">
+                      <input type="hidden" name="status" value="approved">
+                      <button class="save" type="submit" style="padding:4px 6px;font-size:10px;">Approve</button>
+                    </form>
+                    <form method="post" style="display:inline">
+                      <input type="hidden" name="action" value="update_rider_status">
+                      <input type="hidden" name="rider_id" value="<?= (int) $rider['rider_id'] ?>">
+                      <input type="hidden" name="status" value="rejected">
+                      <button class="del" type="submit" style="padding:4px 6px;font-size:10px;">Reject</button>
+                    </form>
+                  </div>
+                <?php endif; ?>
+              </td>
               <td><?= h($rider['created_at']) ?></td>
             </tr>
           <?php endforeach; ?>
           <?php if (empty($ridersList)): ?>
-            <tr><td colspan="8">No riders registered yet.</td></tr>
+            <tr><td colspan="9">No riders registered yet.</td></tr>
           <?php endif; ?>
           </tbody>
         </table>
@@ -529,6 +626,22 @@ function formatPeso(int $amount): string
                        else if ($app['status'] === 'under_review') $sColor = '#f59e0b';
                     ?>
                     <strong style="color:<?= $sColor ?>"><?= ucfirst(h($app['status'])) ?></strong>
+                    <?php if (in_array($app['status'], ['pending', 'under_review'], true)): ?>
+                      <div style="display:flex;gap:4px;margin-top:4px;">
+                        <form method="post" style="display:inline">
+                          <input type="hidden" name="action" value="update_application_status">
+                          <input type="hidden" name="application_id" value="<?= (int) $app['id'] ?>">
+                          <input type="hidden" name="status" value="approved">
+                          <button class="save" type="submit" style="padding:4px 6px;font-size:10px;">Approve</button>
+                        </form>
+                        <form method="post" style="display:inline">
+                          <input type="hidden" name="action" value="update_application_status">
+                          <input type="hidden" name="application_id" value="<?= (int) $app['id'] ?>">
+                          <input type="hidden" name="status" value="rejected">
+                          <button class="del" type="submit" style="padding:4px 6px;font-size:10px;">Reject</button>
+                        </form>
+                      </div>
+                    <?php endif; ?>
                   </td>
                   <td>
                     <?php if ($app['legitimacy_doc_url']): ?>
